@@ -18,4 +18,4 @@ https://www.kaggle.com/datasets/bistaumanga/usps-dataset
 
 https://remi.flamary.com/cours/tuto_da/DA_shallow_to_deep.pdf
 
-$$frac{1}{3}$$
+$$\frac{1}{3}$$
