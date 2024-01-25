@@ -13,3 +13,8 @@ https://www.kaggle.com/datasets/hojjatk/mnist-dataset
 
 - USPS:
 https://www.kaggle.com/datasets/bistaumanga/usps-dataset
+
+# Useful resources
+
+https://remi.flamary.com/cours/tuto_da/DA_shallow_to_deep.pdf
+
