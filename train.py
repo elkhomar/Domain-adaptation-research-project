@@ -5,14 +5,12 @@ from sklearn.metrics import classification_report
 from torch.utils.data import random_split
 from torch.utils.data import DataLoader
 from torchvision.transforms import ToTensor
-from torchvision.datasets import KMNIST
 from torch.optim import Adam
 from torch import nn
 import matplotlib.pyplot as plt
 import numpy as np
 import argparse
 import torch
-import time
 
 ap = argparse.ArgumentParser()
 ap.add_argument("-m", "--model", type=str, required=False,
@@ -24,23 +22,19 @@ args = vars(ap.parse_args())
 INIT_LR = 1e-3
 BATCH_SIZE = 64
 EPOCHS = 100
-# define the train and val splits
 TRAIN_SPLIT = 0.70
 VAL_SPLIT = 1 - TRAIN_SPLIT
-# set the device we will be using to train the model
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 mnist_loader = DataLoader(mnist_dataset, batch_size=32, shuffle=True)
 usps_loader = DataLoader(usps_dataset, batch_size=32, shuffle=True)
 
-# Initialisation du modèle, de la fonction de perte et de l'optimiseur
 model = LeNet(numChannels=1, classes=10).to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
 custom_loss = CustomLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
-
-# Boucle d'entraînement
-num_epochs = 10
+num_epochs = 100
+lmbda = 0.1
 for epoch in range(num_epochs):
     for (mnist_data, mnist_labels), usps_data in zip(mnist_loader, usps_loader):
         mnist_data, mnist_labels = mnist_data.to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu")), mnist_labels.to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
