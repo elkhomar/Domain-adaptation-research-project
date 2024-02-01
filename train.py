@@ -11,6 +11,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import argparse
 import torch
+import torchvision
+import torchvision.datasets as datasets
 
 ap = argparse.ArgumentParser()
 ap.add_argument("-m", "--model", type=str, required=False,
@@ -26,23 +28,24 @@ TRAIN_SPLIT = 0.70
 VAL_SPLIT = 1 - TRAIN_SPLIT
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-
+mnist_dataset = datasets.MNIST(root='./data', train=True, download=True, transform=torchvision.transforms.PILToTensor())
+usps_dataset = datasets.MNIST(root='./data', train=True, download=True, transform=torchvision.transforms.PILToTensor())
 mnist_loader = DataLoader(mnist_dataset, batch_size=32, shuffle=True)
 usps_loader = DataLoader(usps_dataset, batch_size=32, shuffle=True)
 
-model = LeNet(numChannels=1, classes=10).to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
-custom_loss = CustomLoss()
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+lenet = model.LeNet(numChannels=1, classes=10).to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
+custom_loss = model.CustomLoss()
+optimizer = Adam(lenet.parameters(), lr=0.001)
 num_epochs = 100
 lmbda = 0.1
 for epoch in range(num_epochs):
     for (mnist_data, mnist_labels), usps_data in zip(mnist_loader, usps_loader):
         mnist_data, mnist_labels = mnist_data.to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu")), mnist_labels.to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
-        usps_data = usps_data.to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
+        usps_data = usps_data[0].to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
 
         # Forward pass
-        mnist_outputs, mnist_features = model(mnist_data)
-        usps_features = model(usps_data)[1]
+        mnist_outputs, mnist_features = lenet(mnist_data)
+        usps_features = lenet(usps_data)[1]
 
         # Calcul de la perte
         loss = custom_loss(mnist_outputs, mnist_labels, mnist_features, usps_features,lmbda)
@@ -58,7 +61,7 @@ print("Entraînement terminé")
 
 # Sauvegarde du modèle après l'entraînement
 model_path = 'lenet_mnist_model.pth'
-torch.save(model.state_dict(), model_path)
+torch.save(lenet.state_dict(), model_path)
 print(f"Modèle sauvegardé à {model_path}")
 
 

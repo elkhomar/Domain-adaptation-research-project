@@ -1,3 +1,4 @@
+import torch
 from torch.nn import Module, Conv2d, Linear, MaxPool2d, ReLU, LogSoftmax
 from torch import flatten
 import torch.nn as nn
