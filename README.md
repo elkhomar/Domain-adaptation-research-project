@@ -8,11 +8,7 @@ Implementation of several domain adaptations methods
 - TTT++ (https://proceedings.neurips.cc/paper_files/paper/2021/file/b618c3210e934362ac261db280128c22-Paper.pdf)
 
 # Data :
-- MNIST:
-https://www.kaggle.com/datasets/hojjatk/mnist-dataset
-
-- USPS:
-https://www.kaggle.com/datasets/bistaumanga/usps-dataset
+- Digit-five (MNIST-USPS): https://drive.usercontent.google.com/download?id=1A4RJOFj4BJkmliiEL7g9WzNIDUHLxfmm&export=download&authuser=0
 
 # Useful resources
 
