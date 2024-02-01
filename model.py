@@ -1,5 +1,6 @@
 from torch.nn import Module, Conv2d, Linear, MaxPool2d, ReLU, LogSoftmax
 from torch import flatten
+import torch.nn as nn
 
 class LeNet(Module):
 	def __init__(self, numChannels, classes):
@@ -21,26 +22,18 @@ class LeNet(Module):
 		# initialize our softmax classifier
 		self.fc2 = Linear(in_features=500, out_features=classes)
 		self.logSoftmax = LogSoftmax(dim=1)
-		
-    def forward(self, x):
-		# pass the input through our first set of CONV => RELU =>
-		# POOL layers
+	
+	def forward(self, x):
 		x = self.conv1(x)
 		x = self.relu1(x)
 		x = self.maxpool1(x)
-		# pass the output from the previous layer through the second
-		# set of CONV => RELU => POOL layers
 		x = self.conv2(x)
 		x = self.relu2(x)
 		x = self.maxpool2(x)
-		# flatten the output from the previous layer and pass it
-		# through our only set of FC => RELU layers
 		x = flatten(x, 1)
-        feature = x.copy()
+		feature = x.copy()
 		x = self.fc1(x)
 		x = self.relu3(x)
-		# pass the output to our softmax classifier to get our output
-		# predictions
 		x = self.fc2(x)
 		output = self.logSoftmax(x)
 		# return the output predictions
@@ -51,7 +44,7 @@ class CustomLoss(nn.Module):
         super(CustomLoss, self).__init__()
         self.classification_loss = nn.NLLLoss()  # NLLLoss car LogSoftmax est utilisé
 
-    def forward(self, mnist_outputs, mnist_labels, mnist_features, usps_features):
+    def forward(self, mnist_outputs, mnist_labels, mnist_features, usps_features,lmbda):
         # Perte de classification pour MNIST
         class_loss = self.classification_loss(mnist_outputs, mnist_labels)
 
@@ -59,4 +52,4 @@ class CustomLoss(nn.Module):
         feature_loss = torch.norm(mnist_features - usps_features, p=2)**2
 
         # Combinaison des pertes
-        return class_loss + feature_loss
+        return class_loss + lmbda * feature_loss

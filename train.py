@@ -1,6 +1,6 @@
 import matplotlib
 matplotlib.use("Agg")
-from pyimagesearch.lenet import LeNet
+import model
 from sklearn.metrics import classification_report
 from torch.utils.data import random_split
 from torch.utils.data import DataLoader
@@ -15,9 +15,9 @@ import torch
 import time
 
 ap = argparse.ArgumentParser()
-ap.add_argument("-m", "--model", type=str, required=True,
+ap.add_argument("-m", "--model", type=str, required=False,
 	help="path to output trained model")
-ap.add_argument("-p", "--plot", type=str, required=True,
+ap.add_argument("-p", "--plot", type=str, required=False,
 	help="path to output loss/accuracy plot")
 args = vars(ap.parse_args())
 
@@ -30,10 +30,7 @@ VAL_SPLIT = 1 - TRAIN_SPLIT
 # set the device we will be using to train the model
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Charger les données MNIST et USPS
-transform = transforms.Compose([transforms.Resize((28, 28)), transforms.ToTensor()])
-mnist_dataset = datasets.MNIST(root='./data', train=True, download=True, transform=transform)
-usps_dataset = datasets.USPS(root='./data_usps', train=True, download=True, transform=transform)
+
 mnist_loader = DataLoader(mnist_dataset, batch_size=32, shuffle=True)
 usps_loader = DataLoader(usps_dataset, batch_size=32, shuffle=True)
 
@@ -50,12 +47,11 @@ for epoch in range(num_epochs):
         usps_data = usps_data.to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
 
         # Forward pass
-        mnist_outputs = model(mnist_data)
-        mnist_features = model(mnist_data, return_feature=True)
-        usps_features = model(usps_data, return_feature=True)
+        mnist_outputs, mnist_features = model(mnist_data)
+        usps_features = model(usps_data)[1]
 
         # Calcul de la perte
-        loss = custom_loss(mnist_outputs, mnist_labels, mnist_features, usps_features)
+        loss = custom_loss(mnist_outputs, mnist_labels, mnist_features, usps_features,lmbda)
 
         # Backward et optimisation
         optimizer.zero_grad()
