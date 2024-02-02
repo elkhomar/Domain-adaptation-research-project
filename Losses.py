@@ -13,7 +13,6 @@ class MMDLoss(nn.Module):
     
 
     def forward(self, input, target,sigma):
-        # Implement your custom loss calculation here
         XX = self.gram_RBF(input,input,sigma)
         YY = self.gram_RBF(target,target,sigma)
         XY = self.gram_RBF(input,target,sigma)
