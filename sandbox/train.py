@@ -2,6 +2,7 @@ from utils import load_mnist, load_usps
 from model import FeatureExtractorCNN, Trainer, Evaluator
 import torch.nn as nn
 
+# path to USPS dataset
 usps_data_path = '../Digit-Five/usps_28x28.pkl'
 train_usps, test_usps = load_usps(usps_data_path, batch_size=64)
 train_mnist, test_mnist = load_mnist(batch_size=64)
