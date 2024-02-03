@@ -3,7 +3,7 @@ import torch.nn as nn
 
 class MMDLoss(nn.Module):
     def __init__(self):
-        super().__init__()
+        super(MMDLoss).__init__()
     def gram_RBF(self, x, y, sigma):
         gram=[]
         for x_ in x:
