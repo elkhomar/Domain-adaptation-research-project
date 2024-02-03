@@ -1,5 +1,4 @@
 import pickle
-import numpy as np
 from torch.utils.data import TensorDataset, DataLoader
 import torch
 import gzip
@@ -17,7 +16,19 @@ def one_hot_collate(batch, num_classes=10):
     return images, labels
 
 def load_mnist(download=True, path='./data', batch_size=64):
+    """
+    Loads the MNIST dataset and returns DataLoader objects for the train and test sets.
 
+    Parameters:
+    - download (bool, optional): If True, downloads the dataset from the internet if it's not available at `path`. Default is True.
+    - path (str, optional): The path where the MNIST dataset is stored or will be downloaded. Default is './data'.
+    - batch_size (int, optional): The size of each batch returned by the DataLoader. Default is 64.
+
+    Returns:
+    - tuple: A tuple containing two DataLoader instances:
+        - train_loader (DataLoader): DataLoader for the training set.
+        - test_loader (DataLoader): DataLoader for the test set.
+    """
     transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize((0.5,), (0.5,))
@@ -33,6 +44,21 @@ def load_mnist(download=True, path='./data', batch_size=64):
 
 
 def load_usps(data_dir, batch_size=64, one_hot=True, flatten=False):
+    """
+    Loads the USPS dataset from a pickle file, processes it, and returns DataLoader objects for the train and test sets.
+
+    Parameters:
+    - data_dir (str): The directory path where the USPS dataset pickle file is stored.
+    - batch_size (int, optional): The size of each batch returned by the DataLoader. Default is 64.
+    - one_hot (bool, optional): If True, converts labels into one-hot encoded format. Default is True.
+    - flatten (bool, optional): If True, flattens the images into 1D tensors. Otherwise, images are reshaped to 2D tensors (1, 28, 28). Default is False.
+
+    Returns:
+    - tuple: A tuple containing two DataLoader instances:
+        - train_loader (DataLoader): DataLoader for the training set.
+        - test_loader (DataLoader): DataLoader for the test set.
+    """
+        
     with gzip.open(data_dir, 'rb') as f:
         data = pickle.load(f, encoding='latin1')
     
@@ -42,15 +68,12 @@ def load_usps(data_dir, batch_size=64, one_hot=True, flatten=False):
     test_labels = data[1][1]
     
     if not flatten:
-        # Reshape images to add a channel dimension [num_samples, 1, 28, 28]
         train_images = train_images.reshape(train_images.shape[0], 1, 28, 28)
         test_images = test_images.reshape(test_images.shape[0], 1, 28, 28)
     else:
-        # Flatten the images if required
         train_images = train_images.reshape(train_images.shape[0], -1)
         test_images = test_images.reshape(test_images.shape[0], -1)
     
-    # Convert numpy arrays to PyTorch tensors
     train_images = torch.tensor(train_images, dtype=torch.float32)
     test_images = torch.tensor(test_images, dtype=torch.float32)
     
