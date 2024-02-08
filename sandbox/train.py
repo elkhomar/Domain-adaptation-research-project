@@ -22,8 +22,8 @@ trainer = Trainer(feature_extractor=feature_extractor, target_model=target_model
 evaluator = Evaluator(feature_extractor=feature_extractor, target_model=target_model)
 
 num_epochs = 100
-weight_discrepancy_loss = 0
-loss_function_str = 'coral'
+weight_discrepancy_loss = 0.25
+loss_function_str = 'wasserstein'
 
 trainer.train(source_loader=train_mnist, target_loader=train_usps, num_epochs=num_epochs,
               weight_discrepancy=weight_discrepancy_loss, test_loader=test_usps, dataset='USPS', loss_function_str=loss_function_str)

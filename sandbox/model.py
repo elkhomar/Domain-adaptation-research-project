@@ -38,12 +38,15 @@ class FeatureExtractorCNN(nn.Module):
         self.dropout = nn.Dropout(p=0.1)
 
     def forward(self, x, to_g=False):
-        x = F.relu(self.bn1(self.conv1(x)))
+        # x = F.relu(self.bn1(self.conv1(x)))
+        x = F.relu(self.conv1(x))
         x = F.max_pool2d(x, 2)
-        x = F.relu(self.bn2(self.conv2(x)))
+        # x = F.relu(self.bn2(self.conv2(x)))
+        x = F.relu(self.conv2(x))
         x = self.dropout(x)
         x = F.max_pool2d(x, 2)
-        x = F.relu(self.bn3(self.conv3(x)))
+        # x = F.relu(self.bn3(self.conv3(x)))
+        x = F.relu(self.conv3(x))
         x = self.dropout(x)
         x = F.max_pool2d(x, 2)
         if to_g:  # If the data is for the target domain, bypass the rest of CNN
@@ -146,6 +149,8 @@ class Trainer:
 
                 if loss_function_str == 'coral':
                     discrepancy_loss = coral(source_features, target_features)
+
+                print(discrepancy_loss.grad_fn)
 
                 total_loss = classification_loss + weight_discrepancy * discrepancy_loss
                 total_loss.backward()
