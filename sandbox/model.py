@@ -3,7 +3,7 @@ import torch.nn.functional as F
 import torch
 from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau
 from torch.optim import AdamW
-from losses import wasserstein, coral
+from losses import wasserstein
 
 class FeatureExtractorCNN(nn.Module):
     """
@@ -149,8 +149,6 @@ class Trainer:
 
                 if loss_function_str == 'coral':
                     discrepancy_loss = coral(source_features, target_features)
-
-                print(discrepancy_loss.grad_fn)
 
                 total_loss = classification_loss + weight_discrepancy * discrepancy_loss
                 total_loss.backward()
