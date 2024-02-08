@@ -4,7 +4,7 @@ from ot import solve_sample
 import torch
 from torch.optim.lr_scheduler import StepLR
 from torch.optim import AdamW
-
+from Losses import MMDLoss
 class FeatureExtractorCNN(nn.Module):
     """
     A convolutional neural network model intended for feature extraction, structured for processing
@@ -66,7 +66,7 @@ class Trainer:
         self.optimizer = AdamW(model.parameters(), lr=optimizer_lr)
         self.scheduler = StepLR(self.optimizer, step_size=scheduler_step_size, gamma=scheduler_gamma)
 
-    def train(self, source_loader, target_loader, num_epochs, weight_discrepancy, loss_function_str=None):
+    def train(self, source_loader, target_loader, num_epochs, weight_discrepancy, loss_function_str=None, mean_distance=None):
         """
         Trains the model using both source and target data loaders with the option to incorporate a
         domain adaptation loss, specifically the Wasserstein distance, as part of the training process.
@@ -98,7 +98,8 @@ class Trainer:
                     if hasattr(result, 'value'): 
                         discrepancy_loss_value = result.value
                         discrepancy_loss = torch.tensor(discrepancy_loss_value, dtype=torch.float32, requires_grad=True).to(source_features.device)
-
+                if loss_function_str == 'MMD':
+                     discrepancy_loss = MMDLoss()(torch.from_numpy(source_features_flat),torch.from_numpy(target_features_flat), mean_distance)      
                 total_loss = classification_loss + weight_discrepancy * discrepancy_loss
                 total_loss.backward()
                 self.optimizer.step()
