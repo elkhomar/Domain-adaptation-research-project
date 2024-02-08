@@ -11,8 +11,8 @@ torch.backends.cudnn.benchmark = False
 
 # path to USPS dataset
 usps_data_path = '../Digit-Five/usps_28x28.pkl'
-train_usps, test_usps = load_usps(usps_data_path, batch_size=64)
-train_mnist, test_mnist = load_mnist(batch_size=64)
+train_usps, test_usps = load_usps(usps_data_path, batch_size=1000)
+train_mnist, test_mnist = load_mnist(batch_size=1000)
 
 feature_extractor = FeatureExtractorCNN()
 target_model = TargetDomainMLP()

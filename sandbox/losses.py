@@ -3,12 +3,12 @@ from ot.lp import emd2
 import torch
 import torch.nn as nn
 
-def wasserstein(source, target):
-    a = torch.empty(source.shape[0])
-    b = torch.empty(target.shape[0])
-    M =  dist(source, target, metric='euclidean')
-    loss = emd2(a=a, b=b, M=M)
-    return loss
+# def wasserstein(source, target):
+#     a = torch.ones((source.shape[0]) / source.shape[0])
+#     b = torch.ones((target.shape[0]) / target.shape[0])
+#     M =  dist(source, target, metric='euclidean')
+#     loss = emd2(a=a, b=b, M=M)
+#     return loss
 
 class MMDLoss(nn.Module):
     def __init__(self):
@@ -33,12 +33,10 @@ class MMDLoss(nn.Module):
         loss = torch.mean(XX) + torch.mean(YY) - 2 * torch.mean(XY)
         return loss
 
-# def wasserstein(source_features, target_features):
-#     result = solve_sample(source_features, target_features, metric='sqeuclidean', reg=0.1, method='sinkhorn', max_iter=2000)
-#     if hasattr(result, 'value'): 
-#         loss_value = result.value
-#         loss = torch.tensor(loss_value, dtype=torch.float32, requires_grad=True).to(source_features.device)
-#     return loss
+def wasserstein(source_features, target_features):
+    result = solve_sample(source_features, target_features)
+    loss = result.value
+    return loss
 
 class WassersteinDistanceCalculator:
     def __init__(self, metric='euclidean'):
