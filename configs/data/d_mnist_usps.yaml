@@ -2,5 +2,6 @@ _target_: src.data.d_mnist_usps_datamodule.DataModule
 data_dir: None
 batch_size: 16
 train_val_split: [0.8, 0.2]
+flip_domain: True # False : src:mnist trg:usps, True : src:usps trg:mnist
 num_workers: 4
 pin_memory: False
