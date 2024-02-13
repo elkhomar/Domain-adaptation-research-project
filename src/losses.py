@@ -1,8 +1,7 @@
-from ot import solve_sample, dist
 import torch
 import torch.functional as F
 import torch.nn as nn
-from ot.lp import emd2
+import ot
 
 def calculate_mean_distance(mnist_dataloader, usps_dataloader):
     total_distance = 0
@@ -69,59 +68,19 @@ class MMDLoss(nn.Module):
         loss = torch.mean(XX) + torch.mean(YY) - 2 * torch.mean(XY)
         return loss
 
-class WassersteinDistanceCalculator:
-    def __init__(self, metric='euclidean'):
-        self.metric = metric
+class WassersteinLoss(nn.Module):
+    def __init__(self):
+        super(WassersteinLoss, self).__init__()
 
-    def compute_cost_matrix(self, source, target):
-        """
-        Compute the cost matrix using the specified metric.
-        
-        Parameters:
-        - source: torch.Tensor, shape (n_source_samples, n_features)
-            Feature tensor for the source distribution.
-        - target: torch.Tensor, shape (n_target_samples, n_features)
-            Feature tensor for the target distribution.
-            
-        Returns:
-        - cost_matrix: np.ndarray, shape (n_source_samples, n_target_samples)
-            The cost matrix representing the pairwise distances.
-        """
-        # Convert tensors to numpy for compatibility with the ot library
-        source_np = source.detach().cpu().numpy()
-        target_np = target.detach().cpu().numpy()
+    def forward(self, source, target, reg=0):
+        return ot.solve_sample(source, target, reg=reg).value
+    
+class WassersteinLoss(nn.Module):
+    def __init__(self):
+        super(WassersteinLoss, self).__init__()
 
-        # Compute the cost matrix
-        cost_matrix = dist(source_np, target_np, metric=self.metric)
-        return cost_matrix
-
-    def wasserstein(self, source, target):
-        """
-        Compute the Wasserstein distance between source and target distributions.
-        
-        Parameters:
-        - source: torch.Tensor, shape (n_source_samples, n_features)
-            Feature tensor for the source distribution.
-        - target: torch.Tensor, shape (n_target_samples, n_features)
-            Feature tensor for the target distribution.
-            
-        Returns:
-        - loss: float
-            The computed Wasserstein distance.
-        """
-        a = torch.ones(source.shape[0], dtype=torch.float32) / source.shape[0]
-        b = torch.ones(target.shape[0], dtype=torch.float32) / target.shape[0]
-        
-        # Convert histograms to numpy for compatibility with the ot library
-        a_np = a.detach().cpu().numpy()
-        b_np = b.detach().cpu().numpy()
-
-        # Compute the cost matrix
-        M = self.compute_cost_matrix(source, target)
-
-        # Compute the EMD
-        loss = emd2(a_np, b_np, M)
-        return loss
+    def forward(self, source, target):
+        return ot.solve_sample(source, target, reg=1).value
 
 class CoralLoss(nn.Module):
     def __init__(self):
