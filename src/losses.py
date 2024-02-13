@@ -26,8 +26,9 @@ def calculate_mean_distance(mnist_dataloader, usps_dataloader):
     return mean_distance.item()
 
 class MMDLoss(nn.Module):
-    def __init__(self):
+    def __init__(self, sigma=32):
         super(MMDLoss, self).__init__()
+        self.sigma = sigma
 
     def calculate_mean_distance(self, mnist_dataloader, usps_dataloader):
         total_distance = 0
