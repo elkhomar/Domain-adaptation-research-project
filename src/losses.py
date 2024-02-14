@@ -82,12 +82,59 @@ class WassersteinLoss(nn.Module):
         return ot.solve_sample(source, target, reg=reg).value
     
 class WassersteinLoss(nn.Module):
-    def __init__(self):
+    def __init__(self, reg=1, unbiased=False):
         super(WassersteinLoss, self).__init__()
+        self.reg = reg
+        self.unbiased = unbiased
 
     def forward(self, source, target):
-        return ot.solve_sample(source, target, reg=1).value
+        if self.unbiased:
+            s1 = source[:len(source)//2]
+            s2 = source[len(source)//2:]
+            t1 = target[:len(target)//2]
+            t2 = target[len(target)//2:]
+            
+            # 
+            ls1s2 = torch.sqrt(ot.solve_sample(s1, s2, reg=self.reg).value)
+            lt1t2 = torch.sqrt(ot.solve_sample(t1, t2, reg=self.reg).value)
 
+            ls1t1 = torch.sqrt(ot.solve_sample(s1, t1, reg=self.reg).value)
+            # ls1t2 = torch.sqrt(ot.solve_sample(s1, t2, reg=self.reg).value)
+            # ls2t1 = torch.sqrt(ot.solve_sample(s2, t1, reg=self.reg).value)
+            # ls2t2 = torch.sqrt(ot.solve_sample(s2, t2, reg=self.reg).value)
+            loss = ls1t1 - 0.5 * (ls1s2 + lt1t2)
+        else:
+            loss = torch.sqrt(ot.solve_sample(source, target, reg=self.reg).value)
+        return loss
+
+class SlicedWassersteinLoss(nn.Module):
+    def __init__(self, unbiased=False, n_proj=50):
+        super(SlicedWassersteinLoss, self).__init__()
+        self.unbiased = unbiased
+        self.n_proj = n_proj
+        self.seed = torch.initial_seed()
+
+    def forward(self, source, target):
+        torch.use_deterministic_algorithms(True, warn_only=True)
+        if self.unbiased:
+            s1 = source[:len(source)//2]
+            s2 = source[len(source)//2:]
+            t1 = target[:len(target)//2]
+            t2 = target[len(target)//2:]
+            
+            # 
+            ls1s2 = ot.sliced_wasserstein_distance(s1, s2, n_projections=self.n_proj)
+            lt1t2 = ot.sliced_wasserstein_distance(t1, t2, n_projections=self.n_proj)
+
+            ls1t1 = ot.sliced_wasserstein_distance(s1, t1, n_projections=self.n_proj)
+            # ls1t2 = ot.sliced_wasserstein_distance(s1, t2, n_projections=self.n_proj)
+            # ls2t1 = ot.sliced_wasserstein_distance(s2, t1, n_projections=self.n_proj)
+            # ls2t2 = ot.sliced_wasserstein_distance(s2, t2, n_projections=self.n_proj)
+            loss = ls1t1 - 0.5 * (ls1s2 + lt1t2)
+        else:
+            loss = ot.sliced_wasserstein_distance(source, target, n_projections=self.n_proj)
+        return loss
+    
 class CoralLoss(nn.Module):
     def __init__(self):
         super(CoralLoss, self).__init__()

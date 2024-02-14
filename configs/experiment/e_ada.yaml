@@ -13,7 +13,7 @@ defaults:
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
 
-tags: ["usps mnist", "domain adaptation", "Coral"]
+tags: ["usps mnist", "domain adaptation", "Wass"]
 
 seed: 12345
 
@@ -27,7 +27,9 @@ model:
     lr: 0.002
   compile: false
   loss:
-    _target_: src.losses.MMDLoss
+    _target_: src.losses.SlicedMMDLoss
+    unbiased: True
+    n_proj: 100
 
 data:
   batch_size: 256
@@ -35,19 +37,19 @@ data:
 logger:
   wandb:
     tags: ${tags}
-    group: "usps to mnist tests"
+    group: "unbiased Wass usps to mnist"
   aim:
     experiment: "mnist"
 
 callbacks:
   early_stopping:
-    monitor: "val/acc_target"
+    monitor: "val/oracle_acc_target"
     patience: 100
     mode: "max"
   model_checkpoint:
     dirpath: ${paths.output_dir}/checkpoints
     filename: "epoch_{epoch:03d}"
-    monitor: "val/acc_target"
+    monitor: "val/oracle_acc_target"
     mode: "max"
     save_last: True
     auto_insert_metric_name: False

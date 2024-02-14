@@ -14,17 +14,21 @@ scheduler:
   patience: 10
 
 loss:
+<<<<<<< HEAD
   _target_: src.losses.MMDLoss
   sigma: 1.0
 
+=======
+  _target_: src.losses.WassersteinLoss
+>>>>>>> refs/remotes/origin/main
 
 lambd: 1.0
 
 f:
-  _target_: src.models.components.lenet.FeatureExtractor
+  _target_: src.models.components.skada_net.FeatureExtractor
 
 g:
-  _target_: src.models.components.lenet.Classifier
+  _target_: src.models.components.skada_net.Classifier
 
 # compile model for faster training with pytorch 2.0
 compile: false
