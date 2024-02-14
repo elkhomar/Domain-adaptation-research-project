@@ -23,7 +23,7 @@ class mnist_usps_Dataset(Dataset):
         self.flip_domain = flip_domain
         self.prepare_data(data_dir, is_train)
 
-    def load_mnist(self, path='data', is_train=True):
+    def load_mnist(self, path='data', is_train=True, is_target=False):
         """
         Loads the MNIST dataset and returns the images and labels
         """
@@ -47,10 +47,11 @@ class mnist_usps_Dataset(Dataset):
         labels = torch.cat([train_labels, test_labels], 0)
         
         output = (train_images, train_labels) if is_train else (test_images, test_labels)
-        
+        if(is_target):
+            output = (images, labels)
         return output
     
-    def load_usps(self, path='data/USPS/usps_28x28.pkl', is_train=True):
+    def load_usps(self, path='data/USPS/usps_28x28.pkl', is_train=True, is_target=False):
         """
         Loads the USPS dataset from a pickle file, processes it, and returns images and labels
         """
@@ -77,21 +78,25 @@ class mnist_usps_Dataset(Dataset):
         labels = torch.cat([train_labels, test_labels], 0)
 
         output = (train_images, train_labels) if is_train else (test_images, test_labels)
-        
+        if(is_target):
+            output = (images, labels)
         return output
 
     def prepare_data(self, data_dir, is_train):
         """
         Load the MNIST and USPS datasets and assign source/target.
+        The default is to use MNIST as source and USPS as target. But can be changed by setting the flip_domain flag to True
+        The source will be split into train and val while the target will use everything, we get the following datasets:
+        if is_train: (source_train, target_all)
+        else: (source_val, target_all)
         """
-        mnist_images, mnist_labels = self.load_mnist(is_train = self.is_train)
-        usps_images, usps_labels = self.load_usps(is_train = self.is_train)
 
-        self.source_images = mnist_images if not(self.flip_domain) else usps_images
-        self.source_labels = mnist_labels if not(self.flip_domain) else usps_labels
-
-        self.target_images = usps_images if not(self.flip_domain) else mnist_images
-        self.target_labels = usps_labels if not(self.flip_domain) else mnist_labels
+        if not self.flip_domain:
+            self.source_images, self.source_labels = self.load_mnist(is_train = self.is_train, is_target=False)
+            self.target_images, self.target_labels = self.load_usps(is_train = self.is_train, is_target=True)
+        else:
+            self.source_images, self.source_labels = self.load_usps(is_train = self.is_train, is_target=False)
+            self.target_images, self.target_labels = self.load_mnist(is_train = self.is_train, is_target=True)
 
    
     def __len__(self):
