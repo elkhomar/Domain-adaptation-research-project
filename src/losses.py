@@ -28,6 +28,7 @@ class MMDLoss(nn.Module):
     def __init__(self, sigma=32):
         super(MMDLoss, self).__init__()
         self.sigma = sigma
+        self.counter = 0
 
     def calculate_mean_distance(self, mnist_dataloader, usps_dataloader):
         total_distance = 0
@@ -35,7 +36,7 @@ class MMDLoss(nn.Module):
 
         # Assurez-vous que les DataLoader retournent des lots de la même taille
         # ou gérez les cas où les derniers lots pourraient être de tailles différentes.
-        for (mnist_images, _), (usps_images, _) in zip(mnist_dataloader, usps_dataloader):
+        for mnist_images, usps_images in zip(mnist_dataloader, usps_dataloader):
             # Aplatir les images
             mnist_flat = mnist_images.view(mnist_images.shape[0], -1)
             usps_flat = usps_images.view(usps_images.shape[0], -1)
@@ -63,10 +64,14 @@ class MMDLoss(nn.Module):
         return torch.exp(-squared_dist / sigma)
 
     def forward(self, input, target, sigma=32):
+        if input.grad_fn is not None:
+            self.sigma = self.calculate_mean_distance(input, target)
         XX = self.gram_RBF(input, input, sigma)
         YY = self.gram_RBF(target, target, sigma)
         XY = self.gram_RBF(input, target, sigma)
         loss = torch.mean(XX) + torch.mean(YY) - 2 * torch.mean(XY)
+        if input.grad_fn is not None:
+            self.counter += 1
         return loss
 
 class WassersteinLoss(nn.Module):

@@ -13,17 +13,13 @@ defaults:
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
 
-<<<<<<< HEAD
-tags: ["mnist_usps", "domain adaptation", "MMD"]
-=======
 tags: ["usps mnist", "domain adaptation", "Coral"]
->>>>>>> refs/remotes/origin/main
 
 seed: 12345
 
 trainer:
   min_epochs: 10
-  max_epochs: 20
+  max_epochs: 40
 #  gradient_clip_val: 0.5
 
 model:
@@ -31,10 +27,10 @@ model:
     lr: 0.002
   compile: false
   loss:
-    _target_: src.losses.WassersteinLoss
+    _target_: src.losses.MMDLoss
 
 data:
-  batch_size: 64
+  batch_size: 256
 
 logger:
   wandb:
