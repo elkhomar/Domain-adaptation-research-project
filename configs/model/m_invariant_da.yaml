@@ -14,7 +14,7 @@ scheduler:
   patience: 10
 
 loss:
-  _target_: src.losses.MMDLoss
+  _target_: src.losses.WassersteinLoss
 
 lambd: 1.0
 

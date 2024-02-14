@@ -13,7 +13,7 @@ defaults:
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
 
-tags: ["usps mnist", "domain adaptation", "Coral"]
+tags: ["usps mnist", "domain adaptation", "Wass"]
 
 seed: 12345
 
@@ -28,6 +28,7 @@ model:
   compile: false
   loss:
     _target_: src.losses.WassersteinLoss
+    unbiased: True
 
 data:
   batch_size: 64
@@ -35,7 +36,7 @@ data:
 logger:
   wandb:
     tags: ${tags}
-    group: "usps to mnist tests"
+    group: "unbiased Wass usps to mnist"
   aim:
     experiment: "mnist"
 

@@ -199,12 +199,12 @@ class InvariantDAModule(LightningModule):
         self.train_acc_source(logits[0], torch.argmax(labels[0], 1))
         self.train_acc_target(logits[1], torch.argmax(labels[1], 1))
         
-        self.log("train/loss", self.train_loss, on_step=False, on_epoch=True, prog_bar=True)
-        self.log("train/classification_loss_source", self.train_classification_loss_source, on_step=False, on_epoch=True, prog_bar=True)
-        self.log("train/classification_loss_target", self.train_classification_loss_target, on_step=False, on_epoch=True, prog_bar=True)
-        self.log("train/discrepancy_loss", self.train_discrepancy_loss, on_step=False, on_epoch=True, prog_bar=True)
-        self.log("train/acc_source", self.train_acc_source, on_step=False, on_epoch=True, prog_bar=True)
-        self.log("train/acc_target", self.train_acc_target, on_step=False, on_epoch=True, prog_bar=True)
+        self.log("train/loss", self.train_loss, on_step=True, on_epoch=True, prog_bar=True)
+        self.log("train/classification_loss_source", self.train_classification_loss_source, on_step=True, on_epoch=True, prog_bar=True)
+        self.log("train/classification_loss_target", self.train_classification_loss_target, on_step=True, on_epoch=True, prog_bar=True)
+        self.log("train/discrepancy_loss", self.train_discrepancy_loss, on_step=True, on_epoch=True, prog_bar=True)
+        self.log("train/acc_source", self.train_acc_source, on_step=True, on_epoch=True, prog_bar=True)
+        self.log("train/acc_target", self.train_acc_target, on_step=True, on_epoch=True, prog_bar=True)
 
         # return loss or backpropagation will fail
         return loss
@@ -230,12 +230,12 @@ class InvariantDAModule(LightningModule):
         self.val_acc_source(logits[0], torch.argmax(labels[0], 1))
         self.val_acc_target(logits[1], torch.argmax(labels[1], 1))
 
-        self.log("val/loss", self.val_loss, on_step=False, on_epoch=True, prog_bar=True)
-        self.log("val/classification_loss_source", self.val_classification_loss_source, on_step=False, on_epoch=True, prog_bar=True)
-        self.log("val/classification_loss_target", self.val_classification_loss_target, on_step=False, on_epoch=True, prog_bar=True)
-        self.log("val/discrepancy_loss", self.val_discrepancy_loss, on_step=False, on_epoch=True, prog_bar=True)
-        self.log("val/acc_source", self.val_acc_source, on_step=False, on_epoch=True, prog_bar=True)
-        self.log("val/acc_target", self.val_acc_target, on_step=False, on_epoch=True, prog_bar=True)
+        self.log("val/loss", self.val_loss, on_step=True, on_epoch=True, prog_bar=True)
+        self.log("val/classification_loss_source", self.val_classification_loss_source, on_step=True, on_epoch=True, prog_bar=True)
+        self.log("val/classification_loss_target", self.val_classification_loss_target, on_step=True, on_epoch=True, prog_bar=True)
+        self.log("val/discrepancy_loss", self.val_discrepancy_loss, on_step=True, on_epoch=True, prog_bar=True)
+        self.log("val/acc_source", self.val_acc_source, on_step=True, on_epoch=True, prog_bar=True)
+        self.log("val/acc_target", self.val_acc_target, on_step=True, on_epoch=True, prog_bar=True)
 
     def on_validation_epoch_end(self) -> None:
         "Lightning hook that is called when a validation epoch ends."
