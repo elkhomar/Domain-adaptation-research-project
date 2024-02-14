@@ -27,8 +27,9 @@ model:
     lr: 0.002
   compile: false
   loss:
-    _target_: src.losses.WassersteinLoss
+    _target_: src.losses.SlicedWassersteinLoss
     unbiased: True
+    n_proj: 100
 
 data:
   batch_size: 64
