@@ -43,13 +43,13 @@ logger:
 
 callbacks:
   early_stopping:
-    monitor: "val/acc_target"
+    monitor: "val/oracle_acc_target"
     patience: 100
     mode: "max"
   model_checkpoint:
     dirpath: ${paths.output_dir}/checkpoints
     filename: "epoch_{epoch:03d}"
-    monitor: "val/acc_target"
+    monitor: "val/oracle_acc_target"
     mode: "max"
     save_last: True
     auto_insert_metric_name: False

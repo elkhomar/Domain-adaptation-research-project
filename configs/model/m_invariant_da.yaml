@@ -19,10 +19,10 @@ loss:
 lambd: 1.0
 
 f:
-  _target_: src.models.components.lenet.FeatureExtractor
+  _target_: src.models.components.skada_net.FeatureExtractor
 
 g:
-  _target_: src.models.components.lenet.Classifier
+  _target_: src.models.components.skada_net.Classifier
 
 # compile model for faster training with pytorch 2.0
 compile: false
