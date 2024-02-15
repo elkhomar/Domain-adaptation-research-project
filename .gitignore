@@ -1,3 +1,5 @@
+configs/experiment/e_ada.yaml
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
