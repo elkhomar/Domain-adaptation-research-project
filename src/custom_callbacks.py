@@ -30,7 +30,6 @@ class PlotEmbedding(Callback):
         source_val_labels = trainer.datamodule.data_val.source_labels[source_val_samples]
         target_labels = trainer.datamodule.data_train.target_labels[target_samples]
 
-
         visualize_tsne_labels(source_train_embedding, target_embedding, source_train_labels, target_labels, filename=trainer.default_root_dir + f"/visualisations/labels_tsne/epoch{epoch}_tsne_labels_srctrain_target")
         visualize_tsne_domain(source_train_embedding, target_embedding, filename=trainer.default_root_dir + f"/visualisations/domain_tsne/epoch{epoch}_tsne_domain_srctrain_target")
 
