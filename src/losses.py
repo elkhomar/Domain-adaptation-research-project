@@ -102,7 +102,7 @@ class WassersteinLoss(nn.Module):
         return loss
 
 class SlicedWassersteinLoss(nn.Module):
-    def __init__(self, unbiased=False, n_proj=50):
+    def __init__(self, unbiased=False, n_proj=1000):
         super(SlicedWassersteinLoss, self).__init__()
         self.unbiased = unbiased
         self.n_proj = n_proj

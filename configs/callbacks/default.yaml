@@ -3,6 +3,7 @@ defaults:
   - early_stopping
   - model_summary
   - rich_progress_bar
+  - plot_embeddings
   - _self_
 
 model_checkpoint:
@@ -14,9 +15,9 @@ model_checkpoint:
   auto_insert_metric_name: False
 
 early_stopping:
-  monitor: "val/acc"
-  patience: 100
-  mode: "max"
+  monitor: "val/loss"
+  patience: 3
+  mode: "min"
 
 model_summary:
   max_depth: -1

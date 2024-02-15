@@ -1,0 +1,2 @@
+plot_embeddings:
+  _target_: src.custom_callbacks.PlotEmbedding
