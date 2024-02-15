@@ -18,8 +18,13 @@ tags: ["usps mnist", "gridsearch", "MMD"]
 seed: 12345
 
 trainer:
+<<<<<<< HEAD
   min_epochs: 20
   max_epochs: 70
+=======
+  min_epochs: 10
+  max_epochs: 120
+>>>>>>> refs/remotes/origin/main
 #  gradient_clip_val: 0.5
 
 model:
@@ -27,7 +32,13 @@ model:
     lr: 0.002
   compile: false
   loss:
+<<<<<<< HEAD
     _target_: src.losses.MMDLossBandwith
+=======
+    _target_: src.losses.SlicedWassersteinLoss
+    unbiased: True
+    n_proj: 1000
+>>>>>>> refs/remotes/origin/main
 
 data:
   batch_size: 256

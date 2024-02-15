@@ -245,6 +245,7 @@ class InvariantDAModule(LightningModule):
         # otherwise metric would be reset by lightning after each epoch
         self.log("val/acc_best", self.val_acc_best.compute(), sync_dist=True, prog_bar=True)
 
+
     def test_step(self, batch: Tuple[torch.Tensor, torch.Tensor], batch_idx: int) -> None:
         """Perform a single test step on a batch of data from the test set.
 

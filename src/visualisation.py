@@ -4,6 +4,7 @@ import torch
 import numpy as np
 import pandas as pd
 from sklearn.manifold import TSNE
+import os
 
 def visualize_image(image, label):
     """
@@ -17,7 +18,7 @@ def visualize_image(image, label):
     plt.title(f'Label: {label.to("cpu").item()}')
     plt.show()
 
-def visualize_tsne_labels(source_embedding, target_embedding, source_labels, target_labels):
+def visualize_tsne_labels(source_embedding, target_embedding, source_labels, target_labels, filename=None):
     """
     Visualizes the t-SNE of the source and target embeddings coloring by class.
 
@@ -45,11 +46,20 @@ def visualize_tsne_labels(source_embedding, target_embedding, source_labels, tar
 
     # Visualize
     plt.figure(figsize=(10, 10))
-    sns.scatterplot(x='x', y='y', hue='label', data=df)
+    sns.scatterplot(x='x', y='y', hue='label', palette="deep", data=df)
     plt.title('t-SNE')
-    plt.show()
 
-def visualize_tsne_domain(source_embedding, target_embedding):
+    if filename :
+        directory = os.path.dirname(filename)   
+        # Check if the directory exists, and create it if it doesn't
+        if directory:
+            os.makedirs(directory, exist_ok=True)
+        plt.savefig(filename)
+    else:
+        plt.show()
+
+
+def visualize_tsne_domain(source_embedding, target_embedding, filename=None):
     """
     Visualizes the t-SNE of the source and target embeddings coloring by source/target.
     Parameters:
@@ -76,7 +86,15 @@ def visualize_tsne_domain(source_embedding, target_embedding):
     plt.figure(figsize=(10, 10))
     sns.scatterplot(x='x', y='y', hue='domain', data=df)
     plt.title('t-SNE')
-    plt.show()
+    
+    if filename :
+        directory = os.path.dirname(filename)   
+        # Check if the directory exists, and create it if it doesn't
+        if directory:
+            os.makedirs(directory, exist_ok=True)
+        plt.savefig(filename)
+    else:
+        plt.show()
 
 
 if __name__ == "__main__":

@@ -12,6 +12,6 @@ trainer:
   #profiler: "pytorch"
 
   profiler:
-    _target_: lightning.pytorch.profilers.AdvancedProfiler
-    filename: "profiler"
+    _target_: lightning.pytorch.profilers.PyTorchProfiler
+    filename: "torch_profiler"
   fast_dev_run: true
