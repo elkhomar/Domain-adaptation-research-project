@@ -14,13 +14,7 @@ scheduler:
   patience: 10
 
 loss:
-<<<<<<< HEAD
-  _target_: src.losses.MMDLoss
-  sigma: 1.0
-
-=======
   _target_: src.losses.WassersteinLoss
->>>>>>> refs/remotes/origin/main
 
 lambd: 1.0
 

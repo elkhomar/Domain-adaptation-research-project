@@ -13,18 +13,14 @@ defaults:
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
 
-tags: ["usps mnist", "gridsearch", "MMD"]
+tags: ["usps mnist", "domain adaptation", "Wass"]
 
 seed: 12345
 
 trainer:
-<<<<<<< HEAD
-  min_epochs: 20
-  max_epochs: 70
-=======
   min_epochs: 10
   max_epochs: 120
->>>>>>> refs/remotes/origin/main
+  accelerator: cpu
 #  gradient_clip_val: 0.5
 
 model:
@@ -32,26 +28,22 @@ model:
     lr: 0.002
   compile: false
   loss:
-<<<<<<< HEAD
-    _target_: src.losses.MMDLossBandwith
-=======
     _target_: src.losses.SlicedWassersteinLoss
     unbiased: True
     n_proj: 1000
->>>>>>> refs/remotes/origin/main
 
 data:
-  batch_size: 256
+  batch_size: 64
 
 logger:
   wandb:
     tags: ${tags}
-    group: "MMD usps to mnist"
+    group: "unbiased Wass usps to mnist"
   aim:
     experiment: "mnist"
 
 callbacks:
-  early_stopping: 
+  early_stopping:
     monitor: "val/loss"
     patience: 3
     mode: "min"
