@@ -124,6 +124,7 @@ class WassersteinLoss(nn.Module):
         self.unbiased = unbiased
 
     def forward(self, source, target):
+        d = source.shape[1]
         if self.unbiased:
             s1 = source[:len(source)//2]
             s2 = source[len(source)//2:]
@@ -131,16 +132,16 @@ class WassersteinLoss(nn.Module):
             t2 = target[len(target)//2:]
             
             # 
-            ls1s2 = torch.sqrt(ot.solve_sample(s1, s2, reg=self.reg).value)
-            lt1t2 = torch.sqrt(ot.solve_sample(t1, t2, reg=self.reg).value)
+            ls1s2 = (ot.solve_sample(s1, s2, reg=self.reg).value) / d
+            lt1t2 = (ot.solve_sample(t1, t2, reg=self.reg).value) / d
 
-            ls1t1 = torch.sqrt(ot.solve_sample(s1, t1, reg=self.reg).value)
-            # ls1t2 = torch.sqrt(ot.solve_sample(s1, t2, reg=self.reg).value)
-            # ls2t1 = torch.sqrt(ot.solve_sample(s2, t1, reg=self.reg).value)
-            # ls2t2 = torch.sqrt(ot.solve_sample(s2, t2, reg=self.reg).value)
+            ls1t1 = (ot.solve_sample(s1, t1, reg=self.reg).value) / d
+            # ls1t2 = (ot.solve_sample(s1, t2, reg=self.reg).value) / d
+            # ls2t1 = (ot.solve_sample(s2, t1, reg=self.reg).value) / d
+            # ls2t2 = (ot.solve_sample(s2, t2, reg=self.reg).value) / d
             loss = ls1t1 - 0.5 * (ls1s2 + lt1t2)
         else:
-            loss = torch.sqrt(ot.solve_sample(source, target, reg=self.reg).value)
+            loss = (ot.solve_sample(source, target, reg=self.reg).value) / d
         return loss
 
 class SlicedWassersteinLoss(nn.Module):
