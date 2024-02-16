@@ -1,10 +1,11 @@
 # Domain-adaptation-research-project
 Implementation of several domain adaptation methods with a pipeline that allows to run complex experiments with a CLI using yaml config files (hydra library)
-## Example : 
+
+## How It Works :
 The base configuration is found in config/e_ada.yaml and can be overridden by passing arguments in the command line :
-For regular training : python src/train.py  experiment=e_ada model.lambd=1.0 model.loss._target_=src.losses.SlicedWassersteinLoss
-For grid search : python src/train.py -m  experiment=e_ada model.lambd=0.5,1.0,1.5,2.0 data.batch_size=16,32,64
-For profiling: python src/train.py  experiment=e_ada model.lambd=1.0 model.loss._target_=src.losses.SlicedWassersteinLoss debug=profiler
+- For regular training : python src/train.py  experiment=e_ada model.lambd=1.0 model.loss._target_=src.losses.SlicedWassersteinLoss
+- For grid search : python src/train.py -m  experiment=e_ada model.lambd=0.5,1.0,1.5,2.0 data.batch_size=16,32,64
+- For profiling: python src/train.py  experiment=e_ada model.lambd=1.0 model.loss._target_=src.losses.SlicedWassersteinLoss debug=profiler
 
 The pipeline is based on https://github.com/ashleve/lightning-hydra-template
 
