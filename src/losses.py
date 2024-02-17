@@ -207,3 +207,90 @@ class CoralLoss(nn.Module):
         c = torch.add(d_t_d, (-1 * term_mul_2)) * 1 / (n - 1)
 
         return c
+
+
+class DeepJDOT_Loss(nn.Module):
+    def __init__(self):
+        super(DeepJDOT_Loss, self).__init__()
+
+    def forward(self, source, target, y, y_target):
+        return self.deepjdot_loss(source, target, y, y_target, 1, 1)
+    def deepjdot_loss(
+        self,
+        embedd,
+        embedd_target,
+        y,
+        y_target,
+        reg_d,
+        reg_cl,
+        sample_weights=None,
+        target_sample_weights=None,
+        criterion=None,
+    ):
+        """Compute the OT loss for DeepJDOT method [1]_.
+
+        Parameters
+        ----------
+        embedd : tensor
+            embeddings of the source data used to perform the distance matrix.
+        embedd_target : tensor
+            embeddings of the target data used to perform the distance matrix.
+        y : tensor
+            labels of the source data used to perform the distance matrix.
+        y_target : tensor
+            labels of the target data used to perform the distance matrix.
+        reg_d : float, default=1
+            Distance term regularization parameter.
+        reg_cl : float, default=1
+            Class distance term regularization parameter.
+        sample_weights : tensor
+            Weights of the source samples.
+            If None, create uniform weights.
+        target_sample_weights : tensor
+            Weights of the source samples.
+            If None, create uniform weights.
+        criterion : torch criterion (class)
+            The criterion (loss) used to compute the
+            DeepJDOT loss. If None, use the CrossEntropyLoss.
+
+        Returns
+        -------
+        loss : ndarray
+            The loss of the method.
+
+        References
+        ----------
+        .. [1]  Bharath Bhushan Damodaran, Benjamin Kellenberger,
+                Remi Flamary, Devis Tuia, and Nicolas Courty.
+                DeepJDOT: Deep Joint Distribution Optimal Transport
+                for Unsupervised Domain Adaptation. In ECCV 2018
+                15th European Conference on Computer Vision,
+                September 2018. Springer.
+        """
+        dist = torch.cdist(embedd, embedd_target, p=2) ** 2
+
+        y_target_matrix = y_target.repeat(len(y_target), 1, 1).permute(1, 2, 0)
+
+        if criterion is None:
+            criterion = torch.nn.CrossEntropyLoss()
+
+        loss_target = criterion(y_target_matrix, y.repeat(len(y), 1)).T
+        M = reg_d * dist + reg_cl * loss_target
+
+        # Compute the loss
+        if sample_weights is None:
+            sample_weights = torch.full(
+                (len(embedd),),
+                1.0 / len(embedd),
+                device=embedd.device
+            )
+        if target_sample_weights is None:
+            target_sample_weights = torch.full(
+                (len(embedd_target),),
+                1.0 / len(embedd_target),
+                device=embedd_target.device
+            )
+        loss = ot.emd2(sample_weights, target_sample_weights, M)
+
+        return loss
+

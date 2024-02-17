@@ -253,11 +253,11 @@ class InvariantDAModule(LightningModule):
             labels.
         :param batch_idx: The index of the current batch.
         """
-        classification_loss_source, classification_loss_target, discrepancy_loss, preds, logits, targets = self.model_step(batch)
+        classification_loss_source, classification_loss_target, discrepancy_loss, preds, logits, labels = self.model_step(batch)
         loss = classification_loss_source + self.lambd * discrepancy_loss
         # update and log metrics
         self.test_loss(loss)
-        self.test_acc(logits[1], targets[1])
+        self.test_acc(logits[1], torch.argmax(labels[1], 1))
         self.log("test/loss", self.test_loss, on_step=False, on_epoch=True, prog_bar=True)
         self.log("test/acc", self.test_acc, on_step=False, on_epoch=True, prog_bar=True)
 

@@ -20,7 +20,7 @@ seed: 12345
 trainer:
   min_epochs: 10
   max_epochs: 120
-  accelerator: cpu
+  accelerator: gpu
 #  gradient_clip_val: 0.5
 
 model:
@@ -43,6 +43,10 @@ logger:
     experiment: "mnist"
 
 callbacks:
+  # plot_embeddings:
+  #   _target_: src.custom_callbacks.PlotEmbedding
+  #   max_samples: 1000
+
   early_stopping:
     monitor: "val/loss"
     patience: 3
@@ -50,7 +54,7 @@ callbacks:
   model_checkpoint:
     dirpath: ${paths.output_dir}/checkpoints
     filename: "epoch_{epoch:03d}"
-    monitor: "val/oracle_acc_target"
+    monitor: "val/loss"
     mode: "max"
     save_last: True
     auto_insert_metric_name: False
