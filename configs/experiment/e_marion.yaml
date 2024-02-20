@@ -1,0 +1,60 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=example
+
+defaults:
+  - override /data: d_mnist_svhn
+  - override /model: m_invariant_da
+  - override /callbacks: default
+  - override /trainer: default
+  - override /logger: wandb
+
+# all parameters below will be merged with parameters from default configurations set above
+# this allows you to overwrite only specified parameters
+
+tags: ["mnist svhn", "domain adaptation", "Wass"]
+
+seed: 12345
+
+trainer:
+  min_epochs: 10
+  max_epochs: 120
+  accelerator: gpu
+#  gradient_clip_val: 0.5
+
+model:
+  optimizer:
+    lr: 0.002
+  compile: false
+  loss:
+    _target_: src.losses.WassersteinLoss
+    unbiased: True
+    #n_proj: 1000
+
+data:
+  batch_size: 64
+
+logger:
+  wandb:
+    tags: ${tags}
+    group: "unbiased Wass mnist to svhn"
+  aim:
+    experiment: "mnist"
+
+callbacks:
+  # plot_embeddings:
+  #   _target_: src.custom_callbacks.PlotEmbedding
+  #   max_samples: 1000
+
+  early_stopping:
+    monitor: "val/loss"
+    patience: 3
+    mode: "min"
+  model_checkpoint:
+    dirpath: ${paths.output_dir}/checkpoints
+    filename: "epoch_{epoch:03d}"
+    monitor: "val/loss"
+    mode: "max"
+    save_last: True
+    auto_insert_metric_name: False
