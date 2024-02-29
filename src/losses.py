@@ -32,7 +32,7 @@ class RBF(nn.Module):
         super().__init__()
         self.bandwidth_multipliers = mul_factor ** (torch.arange(n_kernels) - n_kernels // 2)
         self.bandwidth = bandwidth
-
+        self.n_kernels = n_kernels
     def get_bandwidth(self, L2_distances):
         if self.bandwidth is None:
             n_samples = L2_distances.shape[0]
@@ -42,7 +42,7 @@ class RBF(nn.Module):
 
     def forward(self, X):
         L2_distances = torch.cdist(X, X) ** 2
-        return torch.exp(-L2_distances[None, ...] / (self.get_bandwidth(L2_distances) * self.bandwidth_multipliers)[:, None, None]).sum(dim=0)
+        return torch.exp(-L2_distances[None, ...] / (self.get_bandwidth(L2_distances) * self.bandwidth_multipliers.to(X.device))[:, None, None]).sum(dim=0)
 
 
 class MMDLossBandwith(nn.Module):
@@ -50,7 +50,6 @@ class MMDLossBandwith(nn.Module):
     def __init__(self, kernel=RBF()):
         super().__init__()
         self.kernel = kernel
-
     def forward(self, X, Y):
         K = self.kernel(torch.vstack([X, Y]))
 
@@ -294,3 +293,9 @@ class DeepJDOT_Loss(nn.Module):
 
         return loss
 
+if __name__ == "__main__" :
+    X= torch.randn(64,9000).to("cuda")
+    print(X)
+    Y = torch.randn(64,9000).to("cuda")
+    loss=MMDLossBandwith()
+    val=loss(X,Y)
