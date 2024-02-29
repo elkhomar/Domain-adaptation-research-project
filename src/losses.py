@@ -27,12 +27,8 @@ class MMDLossBandwith(nn.Module):
     def __init__(self, kernel=RBF()):
         super().__init__()
         self.kernel = kernel
-<<<<<<< HEAD
 
     def forward(self, X, Y, **kwargs):
-=======
-    def forward(self, X, Y):
->>>>>>> refs/remotes/origin/main
         K = self.kernel(torch.vstack([X, Y]))
 
         X_size = X.shape[0]
@@ -167,13 +163,7 @@ class CoralLoss(nn.Module):
         """
         n = input_data.size(0)  # batch_size
 
-        # Check if using gpu or cpu
-        if input_data.is_cuda:
-            device = torch.device('cuda')
-        else:
-            device = torch.device('cpu')
-
-        id_row = torch.ones(n).resize(1, n).to(device=device)
+        id_row = torch.ones(n).resize(1, n).to(device=input_data.device)
         sum_column = torch.mm(id_row, input_data)
         mean_column = torch.div(sum_column, n)
         term_mul_2 = torch.mm(mean_column.t(), mean_column)
@@ -255,6 +245,7 @@ class DeepJDOT_Loss(nn.Module):
 
         dist = torch.cdist(embedd, embedd_target, p=2) ** 2
 
+        # Simple MSE loss (try cross entropy later)
         dist_y = torch.cdist(y, y_target, p=2) **2
         # Bad ! change using einrepete or multigrid
         #loss_target = torch.zeros((len(y), len(y))).to(y.device)
@@ -262,7 +253,7 @@ class DeepJDOT_Loss(nn.Module):
         #     for j in range(len(y_target)):
         #         loss_target[i, j] = criterion(y_target[i], y[j])
         
-        M = self.reg_d * dist + self.reg_cl * loss_target
+        M = self.reg_d * dist + self.reg_cl * dist_y
 
         # Compute the loss
         if sample_weights is None:
@@ -279,9 +270,6 @@ class DeepJDOT_Loss(nn.Module):
             )
         loss = ot.emd2(sample_weights, target_sample_weights, M)
 
-<<<<<<< HEAD
-        return loss
-=======
         return loss
 
 if __name__ == "__main__" :
@@ -290,4 +278,3 @@ if __name__ == "__main__" :
     Y = torch.randn(64,9000).to("cuda")
     loss=MMDLossBandwith()
     val=loss(X,Y)
->>>>>>> refs/remotes/origin/main
