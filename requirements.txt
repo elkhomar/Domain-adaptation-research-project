@@ -1,5 +1,6 @@
 POT
 pandas
+scikit-image
 
 # --------- pytorch --------- #
 torch>=2.0.0
