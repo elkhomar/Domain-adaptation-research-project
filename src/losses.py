@@ -3,29 +3,6 @@ import torch.functional as F
 import torch.nn as nn
 import ot
 
-def calculate_mean_distance(mnist_dataloader, usps_dataloader):
-    total_distance = 0
-    count = 0
-
-    # Assurez-vous que les DataLoader retournent des lots de la même taille
-    # ou gérez les cas où les derniers lots pourraient être de tailles différentes.
-    for (mnist_images, _), (usps_images, _) in zip(mnist_dataloader, usps_dataloader):
-        # Aplatir les images
-        mnist_flat = mnist_images.view(mnist_images.shape[0], -1)
-        usps_flat = usps_images.view(usps_images.shape[0], -1)
-        # Calculer les distances euclidiennes
-        distances = torch.cdist(mnist_flat, usps_flat, p=2)
-
-        # Ajouter la distance moyenne de ce lot
-        total_distance += distances.mean()
-        count += 1
-
-    # Calculer la distance moyenne globale
-    mean_distance = total_distance / count
-    return mean_distance.item()
-
-
-
 class RBF(nn.Module):
 
     def __init__(self, n_kernels=6, mul_factor=2.0, bandwidth=None):
@@ -51,7 +28,7 @@ class MMDLossBandwith(nn.Module):
         super().__init__()
         self.kernel = kernel
 
-    def forward(self, X, Y):
+    def forward(self, X, Y, **kwargs):
         K = self.kernel(torch.vstack([X, Y]))
 
         X_size = X.shape[0]
@@ -99,7 +76,7 @@ class MMDLoss(nn.Module):
         squared_dist = torch.sum(squared_diff, -1)  # Sum over the feature dimension
         return torch.exp(-squared_dist / sigma)
 
-    def forward(self, input, target, sigma=32):
+    def forward(self, input, target, sigma=32, **kwargs):
         if input.grad_fn is not None:
             self.sigma = self.calculate_mean_distance(input, target)
         XX = self.gram_RBF(input, input, sigma)
@@ -109,13 +86,6 @@ class MMDLoss(nn.Module):
         if input.grad_fn is not None:
             self.counter += 1
         return loss
-
-class WassersteinLoss(nn.Module):
-    def __init__(self):
-        super(WassersteinLoss, self).__init__()
-
-    def forward(self, source, target, reg=0):
-        return ot.solve_sample(source, target, reg=reg).value
     
 class WassersteinLoss(nn.Module):
     def __init__(self, reg=1, unbiased=False):
@@ -123,7 +93,7 @@ class WassersteinLoss(nn.Module):
         self.reg = reg
         self.unbiased = unbiased
 
-    def forward(self, source, target):
+    def forward(self, source, target, **kwargs):
         d = source.shape[1]
         if self.unbiased:
             s1 = source[:len(source)//2]
@@ -151,7 +121,7 @@ class SlicedWassersteinLoss(nn.Module):
         self.n_proj = n_proj
         self.seed = torch.initial_seed()
 
-    def forward(self, source, target):
+    def forward(self, source, target, **kwargs):
         torch.use_deterministic_algorithms(True, warn_only=True)
         if self.unbiased:
             s1 = source[:len(source)//2]
@@ -176,7 +146,7 @@ class CoralLoss(nn.Module):
     def __init__(self):
         super(CoralLoss, self).__init__()
 
-    def forward(self, source, target):
+    def forward(self, source, target, **kwargs):
         d = source.size(1)  # dim vector
 
         source_c = self.compute_covariance(source)
@@ -210,19 +180,31 @@ class CoralLoss(nn.Module):
 
 
 class DeepJDOT_Loss(nn.Module):
-    def __init__(self):
+    """
+    reg_d : float, default=1
+    Distance term regularization parameter.
+    reg_cl : float, default=1
+    Class distance term regularization parameter.
+    
+    """
+    def __init__(self, reg_d = 1, reg_cl = 1):
         super(DeepJDOT_Loss, self).__init__()
+        self.reg_d = reg_d
+        self.reg_cl = reg_cl
 
-    def forward(self, source, target, y, y_target):
-        return self.deepjdot_loss(source, target, y, y_target, 1, 1)
+    def forward(self, source, target, **kwargs):
+        """
+        We pass the labels through the kwargs argument so the other losses don't have to explicitly use y and y_target
+        """
+        y_source = kwargs["y_source"]
+        y_target = kwargs["preds_target"]
+        return self.deepjdot_loss(source, target, y_source, y_target)
     def deepjdot_loss(
         self,
         embedd,
         embedd_target,
-        y,
-        y_target,
-        reg_d,
-        reg_cl,
+        logits_source,
+        logits_target,
         sample_weights=None,
         target_sample_weights=None,
         criterion=None,
@@ -239,10 +221,6 @@ class DeepJDOT_Loss(nn.Module):
             labels of the source data used to perform the distance matrix.
         y_target : tensor
             labels of the target data used to perform the distance matrix.
-        reg_d : float, default=1
-            Distance term regularization parameter.
-        reg_cl : float, default=1
-            Class distance term regularization parameter.
         sample_weights : tensor
             Weights of the source samples.
             If None, create uniform weights.
@@ -267,15 +245,20 @@ class DeepJDOT_Loss(nn.Module):
                 15th European Conference on Computer Vision,
                 September 2018. Springer.
         """
+
+        y = logits_source
+        y_target = logits_target
+
         dist = torch.cdist(embedd, embedd_target, p=2) ** 2
 
-        y_target_matrix = y_target.repeat(len(y_target), 1, 1).permute(1, 2, 0)
-
-        if criterion is None:
-            criterion = torch.nn.CrossEntropyLoss()
-
-        loss_target = criterion(y_target_matrix, y.repeat(len(y), 1)).T
-        M = reg_d * dist + reg_cl * loss_target
+        dist_y = torch.cdist(y, y_target, p=2) **2
+        # Bad ! change using einrepete or multigrid
+        #loss_target = torch.zeros((len(y), len(y))).to(y.device)
+        # for i in range(len(y_target)):
+        #     for j in range(len(y_target)):
+        #         loss_target[i, j] = criterion(y_target[i], y[j])
+        
+        M = self.reg_d * dist + self.reg_cl * loss_target
 
         # Compute the loss
         if sample_weights is None:
@@ -293,4 +276,3 @@ class DeepJDOT_Loss(nn.Module):
         loss = ot.emd2(sample_weights, target_sample_weights, M)
 
         return loss
-

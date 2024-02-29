@@ -138,15 +138,15 @@ class InvariantDAModule(LightningModule):
         #logits_target = torch.zeros_like(logits_source)
         classification_loss_target = self.criterion(logits_target, y_target)
 
-        discrepancy_loss = self.embedding_distance(z_source, z_target)
-        #discrepancy_loss = 0
-
         preds_source = torch.argmax(logits_source, dim=1)
         preds_target = torch.argmax(logits_target, dim=1)
+
+        discrepancy_loss = self.embedding_distance(z_source, z_target, y_source = y_source, preds_target = logits_target)
+
         return classification_loss_source, classification_loss_target, discrepancy_loss, (preds_source, preds_target), (logits_source, logits_target), (y_source, y_target)
     
     def embedding_distance(
-            self, source, target
+            self, source, target, **kwargs
     ) -> torch.Tensor:
         """Calculate the distance between source and target through the invariant.
 
@@ -154,7 +154,7 @@ class InvariantDAModule(LightningModule):
         :param target_embedding: A tensor of target embeddings.
         :return: A single number quantifying source and target embedding descrepency.
         """
-        return self.loss(source, target)
+        return self.loss(source, target, **kwargs)
     
     def compute_covariance(self, input_data):
         """
