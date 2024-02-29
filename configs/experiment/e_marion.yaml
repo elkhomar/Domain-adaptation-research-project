@@ -4,7 +4,7 @@
 # python train.py experiment=example
 
 defaults:
-  - override /data: d_mnist_usps
+  - override /data: d_mnist_svhn
   - override /model: m_invariant_da
   - override /callbacks: default
   - override /trainer: default
@@ -13,13 +13,14 @@ defaults:
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
 
-tags: ["svhn mnist", "gridsearch", "MMD"]
+tags: ["mnist svhn", "domain adaptation", "Wass"]
 
 seed: 12345
 
 trainer:
-  min_epochs: 50
-  max_epochs: 100
+  min_epochs: 10
+  max_epochs: 120
+  accelerator: gpu
 #  gradient_clip_val: 0.5
 
 model:
@@ -27,31 +28,33 @@ model:
     lr: 0.002
   compile: false
   loss:
-    _target_: src.losses.MMDLossBandwith
-    kernel : 
-      _target_: src.losses.RBF
-      n_kernels : 6
-  
+    _target_: src.losses.WassersteinLoss
+    unbiased: True
+    #n_proj: 1000
 
 data:
-  batch_size: 256
+  batch_size: 64
 
 logger:
   wandb:
     tags: ${tags}
-    group: "MMD usps to mnist"
+    group: "unbiased Wass mnist to svhn"
   aim:
     experiment: "mnist"
 
 callbacks:
-  early_stopping: 
+  # plot_embeddings:
+  #   _target_: src.custom_callbacks.PlotEmbedding
+  #   max_samples: 1000
+
+  early_stopping:
     monitor: "val/loss"
-    patience: 5
+    patience: 3
     mode: "min"
   model_checkpoint:
     dirpath: ${paths.output_dir}/checkpoints
     filename: "epoch_{epoch:03d}"
-    monitor: "val/oracle_acc_target"
+    monitor: "val/loss"
     mode: "max"
     save_last: True
     auto_insert_metric_name: False

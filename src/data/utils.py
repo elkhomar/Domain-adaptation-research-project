@@ -97,3 +97,30 @@ def group_id_2_label(labels, num_classes):
     return torch.nn.functional.one_hot(labels, num_classes=num_classes)
 
 
+def load_svhn(download=True, path='./data', batch_size=64):
+    """
+    Loads the SVHN dataset and returns DataLoader objects for the train and test sets.
+
+    Parameters:
+    - download (bool, optional): If True, downloads the dataset from the internet if it's not available at `path`. Default is True.
+    - path (str, optional): The path where the SVHN dataset is stored or will be downloaded. Default is './data'.
+    - batch_size (int, optional): The size of each batch returned by the DataLoader. Default is 64.
+
+    Returns:
+    - tuple: A tuple containing two DataLoader instances:
+        - train_loader (DataLoader): DataLoader for the training set.
+        - test_loader (DataLoader): DataLoader for the test set.
+    """
+    transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.5,), (0.5,)),
+        transforms.Grayscale()
+    ])
+
+    train_dataset = datasets.SVHN(root=path, train=True, download=download, transform=transform)
+    test_dataset = datasets.SVHN(root=path, train=False, download=download, transform=transform)
+
+    train_loader = DataLoader(train_dataset, batch_size, shuffle=True, collate_fn=one_hot_collate)
+    test_loader = DataLoader(test_dataset, batch_size, shuffle=False, collate_fn=one_hot_collate)
+
+    return train_loader, test_loader
