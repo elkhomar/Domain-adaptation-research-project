@@ -397,12 +397,12 @@ class UnbiasedDeepJDOT_Loss(nn.Module):
         # Compute the loss
         if sample_weights is None:
             sample_weights = torch.full(
-                (len(embedd) // 2,), 1.0 / len(embedd) // 2, device=embedd.device
+                (len(embedd) // 2,), 1.0 / (len(embedd) // 2), device=embedd.device
             )
         if target_sample_weights is None:
             target_sample_weights = torch.full(
                 (len(embedd_target) // 2,),
-                1.0 / len(embedd_target) // 2,
+                1.0 / (len(embedd_target) // 2),
                 device=embedd_target.device,
             )
         loss_s1t1 = ot.emd2(sample_weights, target_sample_weights, M_s1t1)
