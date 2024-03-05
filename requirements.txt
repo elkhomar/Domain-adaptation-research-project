@@ -1,6 +1,7 @@
 POT
 pandas
 scikit-image
+opencv-python
 
 # --------- pytorch --------- #
 torch>=2.0.0
