@@ -127,7 +127,6 @@ class InvariantDAModule(LightningModule):
         x, y = batch
         x_source, x_target = x[:, 0], x[:, 1]
         y_source, y_target = y[:, 0], y[:, 1]
-
         z_source = self.f(x_source)
         logits_source = self.g(z_source)
         classification_loss_source = self.criterion(logits_source, y_source)

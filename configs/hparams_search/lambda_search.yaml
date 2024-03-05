@@ -1,7 +1,7 @@
 # @package _global_
 
 # example hyperparameter optimization of some experiment with Optuna:
-# python train.py -m hparams_search=mnist_optuna experiment=example
+# python train.py -m hparams_search=lambda_search experiment=e_ada
 
 defaults:
   - override /hydra/sweeper: optuna
@@ -45,6 +45,7 @@ hydra:
 
     # define hyperparameter search space
     params:
-      data.batch_size: choice(256, 512)
-      model.lambd: interval(1, 100)
-
+      data.batch_size: choice(256, 512, 1024, 2048, 5096)
+      model.loss._target_: choice("src.losses.UnbiasedDeepJDOT_Loss", "src.losses.DeepJDOT_Loss")
+      model.loss.reg_d: choice(1, 10, 50, 100, 500)
+      model.loss.reg_cl: choice(1, 10, 50, 100, 500)

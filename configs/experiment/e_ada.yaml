@@ -29,12 +29,12 @@ model:
   lambd: 1e-4
   compile: false
   loss:
-    _target_: src.losses.DeepJDOT_Loss
+    _target_: src.losses.UnbiasedDeepJDOT_Loss
     reg_d: 10
     reg_cl: 1
 
-
 data:
+  _target_: src.data.d_mnist_usps_datamodule.DataModule
   batch_size: 512
 
 logger:
