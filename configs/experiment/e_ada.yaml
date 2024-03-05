@@ -26,7 +26,7 @@ trainer:
 model:
   optimizer:
     lr: 0.002
-  lambd: 1e-4
+  lambd: 1e-3
   compile: false
   loss:
     _target_: src.losses.UnbiasedDeepJDOT_Loss
