@@ -8,47 +8,19 @@ class RBF(nn.Module):
 
     def __init__(self, n_kernels=6, mul_factor=2.0, bandwidth=None):
         super().__init__()
-        self.bandwidth_multipliers = mul_factor ** (
-            torch.arange(n_kernels) - n_kernels // 2
-        )
-        self.bandwidth = bandwidth
-        self.n_kernels = n_kernels
-
-    def get_bandwidth(self, L2_distances):
-        if self.bandwidth is None:
-            n_samples = L2_distances.shape[0]
-            return L2_distances.data.sum() / (n_samples**2 - n_samples)
-
-        return self.bandwidth
-
-    def forward(self, X):
-        L2_distances = torch.cdist(X, X) ** 2
-        return torch.exp(
-            -L2_distances[None, ...]
-            / (
-                self.get_bandwidth(L2_distances)
-                * self.bandwidth_multipliers.to(X.device)
-            )[:, None, None]
-        ).sum(dim=0)
-
-class RQ(nn.Module):
-    def __init__(self, n_kernels=6, mul_factor=2.0, alpha=1.0, bandwidth=None):
-        super().__init__()
         self.bandwidth_multipliers = mul_factor ** (torch.arange(n_kernels) - n_kernels // 2)
         self.bandwidth = bandwidth
         self.n_kernels = n_kernels
-        self.alpha = alpha
-
     def get_bandwidth(self, L2_distances):
         if self.bandwidth is None:
             n_samples = L2_distances.shape[0]
-            return L2_distances.data.sum() / (n_samples ** 2 - n_samplesot.emd2(sample_weights, target_sample_weights, M_s1t1))
+            return L2_distances.data.sum() / (n_samples ** 2 - n_samples)
+
         return self.bandwidth
+
     def forward(self, X):
         L2_distances = torch.cdist(X, X) ** 2
-        bandwidth = self.get_bandwidth(L2_distances) * self.bandwidth_multipliers.to(X.device)
-        K = (1 + L2_distances[None, ...] / (2 * self.alpha * bandwidth[:, None, None])) ** (-self.alpha)
-        return K.sum(dim=0)
+        return torch.exp(-L2_distances[None, ...] / (self.get_bandwidth(L2_distances) * self.bandwidth_multipliers.to(X.device))[:, None, None]).sum(dim=0)
 
 class RQ(nn.Module):
     def __init__(self, n_kernels=6, mul_factor=2.0, alpha=1.0, bandwidth=None):
@@ -84,7 +56,7 @@ class MMDLossBandwith(nn.Module):
         XY = K[:X_size, X_size:].mean()
         YY = K[X_size:, X_size:].mean()
         return XX - 2 * XY + YY
-
+    
 
 # class MMDLoss(nn.Module):
 #     def __init__(self, sigma=32):
