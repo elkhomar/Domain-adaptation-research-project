@@ -1,3 +1,9 @@
+POT
+pandas
+scikit-image
+opencv-python
+seaborn
+
 # --------- pytorch --------- #
 torch>=2.0.0
 torchvision>=0.15.0
@@ -10,7 +16,7 @@ hydra-colorlog==1.2.0
 hydra-optuna-sweeper==1.2.0
 
 # --------- loggers --------- #
-# wandb
+# wandb>=0.12.10
 # neptune-client
 # mlflow
 # comet-ml

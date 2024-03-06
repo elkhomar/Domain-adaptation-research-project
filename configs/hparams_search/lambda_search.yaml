@@ -1,14 +1,14 @@
 # @package _global_
 
 # example hyperparameter optimization of some experiment with Optuna:
-# python train.py -m hparams_search=mnist_optuna experiment=example
+# python train.py -m hparams_search=lambda_search experiment=e_ada
 
 defaults:
   - override /hydra/sweeper: optuna
 
 # choose metric which will be optimized by Optuna
 # make sure this is the correct name of some metric logged in lightning module!
-optimized_metric: "test/acc"
+optimized_metric: "val/loss"
 
 # here we define Optuna hyperparameter search
 # it optimizes for value returned from function with @hydra.main decorator
@@ -45,7 +45,7 @@ hydra:
 
     # define hyperparameter search space
     params:
-      model.optimizer.lr: interval(0.0001, 0.1)
-      #data.batch_size: choice(256, 512)
-      model.lambd: interval(0.1, 1)
-
+      data.batch_size: choice(256, 512, 1024, 2048, 5096)
+      model.loss._target_: choice("src.losses.UnbiasedDeepJDOT_Loss", "src.losses.DeepJDOT_Loss")
+      model.loss.reg_d: choice(1, 10, 50, 100, 500)
+      model.loss.reg_cl: choice(1, 10, 50, 100, 500)

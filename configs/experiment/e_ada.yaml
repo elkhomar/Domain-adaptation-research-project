@@ -26,31 +26,31 @@ trainer:
 model:
   optimizer:
     lr: 0.002
+  lambd: 1e-3
   compile: false
   loss:
-    _target_: src.losses.SlicedWassersteinLoss
-    unbiased: True
-    n_proj: 1000
+    _target_: src.losses.UnbiasedDeepJDOT_Loss
+    reg_d: 10
+    reg_cl: 1
 
 data:
-  batch_size: 64
+  _target_: src.data.d_mnist_usps_datamodule.DataModule
+  batch_size: 512
 
 logger:
   wandb:
     tags: ${tags}
-    group: "unbiased Wass usps to mnist"
+    group: "DeepJdot parameter grid search"
   aim:
     experiment: "mnist"
 
 callbacks:
-  # plot_embeddings:
-  #   _target_: src.custom_callbacks.PlotEmbedding
-  #   max_samples: 1000
 
   early_stopping:
     monitor: "val/loss"
-    patience: 3
+    patience: 6
     mode: "min"
+
   model_checkpoint:
     dirpath: ${paths.output_dir}/checkpoints
     filename: "epoch_{epoch:03d}"
