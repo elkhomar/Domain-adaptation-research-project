@@ -26,8 +26,7 @@ https://www.overleaf.com/project/65bbbd12e2b5ee9e67df749c
 
 # Data :
 - Digit-five (MNIST-USPS): https://drive.usercontent.google.com/download?id=1A4RJOFj4BJkmliiEL7g9WzNIDUHLxfmm&export=download&authuser=0
-- Office31
-- Wifi
+- MNIST-M https://drive.google.com/file/d/0B_tExHiYS-0veklUZHFYT19KYjg/view?pli=1&resourcekey=0-DE7ivVVSn8PwP9fdHvSUfA
 - Toy datasets with different shifts from Skada
 
 # Useful resources

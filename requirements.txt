@@ -2,6 +2,7 @@ POT
 pandas
 scikit-image
 opencv-python
+seaborn
 
 # --------- pytorch --------- #
 torch>=2.0.0
