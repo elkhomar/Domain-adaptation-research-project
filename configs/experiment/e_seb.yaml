@@ -13,13 +13,13 @@ defaults:
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
 
-tags: ["svhn mnist", "gridsearch", "MMD"]
+tags: ["variance"]
 
 seed: 12345
 
 trainer:
-  min_epochs: 50
-  max_epochs: 100
+  min_epochs: 70
+  max_epochs: 110
 #  gradient_clip_val: 0.5
 
 model:
@@ -29,12 +29,13 @@ model:
   loss:
     _target_: src.losses.MMDLossBandwith
     kernel : 
-      _target_: src.losses.RQ
+      _target_: src.losses.RBF
       n_kernels : 6
+      #alpha : 1
   
 
 data:
-  batch_size: 256 
+  batch_size: 512
 
 logger:
   wandb:
@@ -44,9 +45,12 @@ logger:
     experiment: "mnist"
 
 callbacks:
+  plot_embeddings:
+    _target_: src.custom_callbacks.PlotEmbedding
+    
   early_stopping: 
     monitor: "val/loss"
-    patience: 5
+    patience: 10
     mode: "min"
   model_checkpoint:
     dirpath: ${paths.output_dir}/checkpoints
