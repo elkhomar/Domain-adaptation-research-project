@@ -4,7 +4,7 @@
 # python train.py experiment=example
 
 defaults:
-  - override /data: d_mnist_usps
+  - override /data: d_domain_adaptation
   - override /model: m_invariant_da
   - override /callbacks: default
   - override /trainer: default
@@ -34,7 +34,6 @@ model:
     reg_cl: 1
 
 data:
-  _target_: src.data.d_mnist_usps_datamodule.DataModule
   batch_size: 512
 
 logger:
@@ -45,6 +44,9 @@ logger:
     experiment: "mnist"
 
 callbacks:
+
+  plot_embeddings:
+    _target_: src.custom_callbacks.PlotEmbedding
 
   early_stopping:
     monitor: "val/loss"

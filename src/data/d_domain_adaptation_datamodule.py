@@ -15,107 +15,17 @@ import gzip
 import pickle
 
 
-class mnist_usps_Dataset(Dataset):
+class FusedDataset(Dataset):
+    """
+    A Dataset class that merges the sources and targets per batch in two different channels
+    """
 
-    def __init__(self, data_dir, flip_domain=False, is_train=True):
+    def __init__(self, source_dataset, target_dataset, is_train=True):
         self.is_train = is_train
-        self.flip_domain = flip_domain
-        self.prepare_data(data_dir, is_train)
-
-    def load_mnist(self, path="data", is_train=True, is_target=False):
-        """
-        Loads the MNIST dataset and returns the images and labels
-        """
-
-        train_dataset = datasets.MNIST(root=path, train=True, download=True)
-        test_dataset = datasets.MNIST(root=path, train=False)
-
-        # transform the images and labels (normalize and one hot)
-
-        train_images = (train_dataset.data.float()).unsqueeze(1)
-        test_images = (test_dataset.data.float()).unsqueeze(1)
-
-        train_images = (train_images - train_images.mean()) / (
-            train_images.std() + 1e-6
+        self.target_images, self.target_labels = target_dataset.all_outputs
+        self.source_images, self.source_labels = (
+            source_dataset.train_outputs if is_train else source_dataset.val_outputs
         )
-        test_images = (test_images - test_images.mean()) / (test_images.std() + 1e-6)
-
-        train_labels = one_hot(train_dataset.targets, num_classes=10).float()
-        test_labels = one_hot(test_dataset.targets, num_classes=10).float()
-
-        # merge train and test data
-        images = torch.cat([train_images, test_images], 0)
-        labels = torch.cat([train_labels, test_labels], 0)
-
-        output = (
-            (train_images, train_labels) if is_train else (test_images, test_labels)
-        )
-        if is_target:
-            output = (images, labels)
-        return output
-
-    def load_usps(
-        self, path="data/USPS/usps_28x28.pkl", is_train=True, is_target=False
-    ):
-        """
-        Loads the USPS dataset from a pickle file, processes it, and returns images and labels
-        """
-
-        with gzip.open(path, "rb") as f:
-            data = pickle.load(f, encoding="latin1")
-
-        train_images = data[0][0]
-        train_labels = data[0][1]
-        test_images = data[1][0]
-        test_labels = data[1][1]
-
-        train_images = torch.tensor(train_images, dtype=torch.float32)
-        test_images = torch.tensor(test_images, dtype=torch.float32)
-
-        train_images = (train_images - train_images.mean()) / (
-            train_images.std() + 1e-6
-        )
-        test_images = (test_images - test_images.mean()) / (test_images.std() + 1e-6)
-
-        train_labels = one_hot(
-            torch.tensor(train_labels).long(), num_classes=10
-        ).float()
-        test_labels = one_hot(torch.tensor(test_labels).long(), num_classes=10).float()
-
-        # merge train and test data
-        images = torch.cat([train_images, test_images], 0)
-        labels = torch.cat([train_labels, test_labels], 0)
-
-        output = (
-            (train_images, train_labels) if is_train else (test_images, test_labels)
-        )
-        if is_target:
-            output = (images, labels)
-        return output
-
-    def prepare_data(self, data_dir, is_train):
-        """
-        Load the MNIST and USPS datasets and assign source/target.
-        The default is to use MNIST as source and USPS as target. But can be changed by setting the flip_domain flag to True
-        The source will be split into train and val while the target will use everything, we get the following datasets:
-        if is_train: (source_train, target_all)
-        else: (source_val, target_all)
-        """
-
-        if not self.flip_domain:
-            self.source_images, self.source_labels = self.load_mnist(
-                is_train=self.is_train, is_target=False
-            )
-            self.target_images, self.target_labels = self.load_usps(
-                is_train=self.is_train, is_target=True
-            )
-        else:
-            self.source_images, self.source_labels = self.load_usps(
-                is_train=self.is_train, is_target=False
-            )
-            self.target_images, self.target_labels = self.load_mnist(
-                is_train=self.is_train, is_target=True
-            )
 
     def __len__(self):
         return max(len(self.target_images), len(self.source_images))
@@ -172,9 +82,8 @@ class DataModule(LightningDataModule):
 
     def __init__(
         self,
-        data_dir: str = "data/",
-        train_val_split: Tuple[float, float] = (0.8, 0.2),
-        flip_domain: bool = False,
+        source_dataset,
+        target_dataset,
         batch_size: int = 8,
         num_workers: int = 0,
         pin_memory: bool = False,
@@ -184,13 +93,12 @@ class DataModule(LightningDataModule):
         # this line allows to access init params with 'self.hparams' attribute
         # also ensures init params will be stored in ckpt
         self.save_hyperparameters(logger=False)
-        self.data_train = mnist_usps_Dataset(data_dir, flip_domain, is_train=True)
-        self.data_val = mnist_usps_Dataset(data_dir, flip_domain, is_train=False)
-        self.train_val_split = train_val_split
+        self.data_train = FusedDataset(source_dataset, target_dataset, is_train=True)
+        self.data_val = FusedDataset(source_dataset, target_dataset, is_train=False)
 
     @property
     def n_features(self):
-        return 4
+        return None
 
     def setup(self, stage: Optional[str] = None):
         """Load data. Set variables: `self.data_train`, `self.data_val`, `self.data_test`.

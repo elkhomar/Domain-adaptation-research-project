@@ -1,0 +1,8 @@
+_target_: src.data.d_domain_adaptation_datamodule.DataModule
+source_dataset:
+  _target_: src.data.datasets.d_usps.UspsDataset
+target_dataset:
+  _target_: src.data.datasets.d_mnist.MnistDataset
+batch_size: 16
+num_workers: 4
+pin_memory: False
