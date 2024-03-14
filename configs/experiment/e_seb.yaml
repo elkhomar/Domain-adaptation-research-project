@@ -13,12 +13,12 @@ defaults:
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
 
-tags: ["variance"]
+tags: ["variation en fonction du nombre de kernels"]
 
 seed: 12345
 
 trainer:
-  min_epochs: 70
+  min_epochs: 50
   max_epochs: 110
 #  gradient_clip_val: 0.5
 

@@ -83,7 +83,7 @@ def visualize_samples(preds_source, label_source, preds_target, label_target, fi
     plt.xlabel(r"$x_1$")
     plt.ylabel(r"$x_2$")
     plt.legend()
-    plt.savefig(filename)
+    plt.savefig("data_vis/runs/"+filename)
     plt.close()
 
 class CustomLoss(nn.Module):
@@ -192,7 +192,7 @@ if __name__ == "__main__":
     train_model(model, optimizer, dataloader1, dataloader2,loss_module, num_epochs=100, device='gpu')
 
 
-#create_gif(image_path_pattern="./*.png", output_filename='third_gif.gif', fps=2)
+create_gif(image_path_pattern="./*.png", output_filename='third_gif.gif', fps=2)
 
 
 
