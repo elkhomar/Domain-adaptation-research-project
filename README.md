@@ -14,6 +14,7 @@ https://www.overleaf.com/project/65bbbd12e2b5ee9e67df749c
 ## Wandb runs :
 - Omar : https://wandb.ai/omarel/Domain%20adaptation%20research%20project
 - Seb : https://wandb.ai/sebvol/Domain%20adaptation%20research%20project?workspace=user-sebastien-vol
+- Marion : https://wandb.ai/marionchdl/Domain%20adaptation%20research%20project?nw=nwusermarionchadal
 
 # Methods :
 ## Invariant :
