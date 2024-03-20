@@ -34,7 +34,11 @@ model:
     reg_cl: 1
 
 data:
-  batch_size: 512
+  source_dataset:
+    _target_: src.data.datasets.d_usps.UspsDataset
+  target_dataset:
+    _target_: src.data.datasets.d_mnist.MnistDataset
+  batch_size: 256
 
 logger:
   wandb:
@@ -45,8 +49,8 @@ logger:
 
 callbacks:
 
-  plot_embeddings:
-    _target_: src.custom_callbacks.PlotEmbedding
+  # plot_embeddings:
+  #   _target_: src.custom_callbacks.PlotEmbedding
 
   early_stopping:
     monitor: "val/loss"

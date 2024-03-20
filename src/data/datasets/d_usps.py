@@ -10,9 +10,7 @@ class UspsDataset(Dataset):
     def __init__(self):
         self.all_outputs, self.train_outputs, self.val_outputs = self.load_usps()
 
-    def load_usps(
-        self, path="data/USPS/usps_28x28.pkl", is_train=True, is_target=False
-    ):
+    def load_usps(self, path="data/USPS/usps_28x28.pkl"):
         """
         Loads the USPS dataset from a pickle file, processes it, and returns images and labels
         """
