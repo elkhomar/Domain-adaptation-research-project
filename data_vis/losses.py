@@ -6,7 +6,7 @@ import ot
 
 class RBF(nn.Module):
 
-    def __init__(self, n_kernels=6, mul_factor=2.0, bandwidth=None):
+    def __init__(self, n_kernels=1, mul_factor=2.0, bandwidth=None):
         super().__init__()
         self.bandwidth_multipliers = mul_factor ** (torch.arange(n_kernels) - n_kernels // 2)
         self.bandwidth = bandwidth
@@ -58,54 +58,54 @@ class MMDLossBandwith(nn.Module):
         return XX - 2 * XY + YY
     
 
-# class MMDLoss(nn.Module):
-#     def __init__(self, sigma=32):
-#         super(MMDLoss, self).__init__()
-#         self.sigma = sigma
-#         self.counter = 0
-#     def calculate_mean_distance(self, mnist_dataloader, usps_dataloader):
-#         total_distance = 0
-#         count = 0
+class MMDLoss(nn.Module):
+    def __init__(self, sigma=32):
+        super(MMDLoss, self).__init__()
+        self.sigma = sigma
+        self.counter = 0
+    def calculate_mean_distance(self, mnist_dataloader, usps_dataloader):
+        total_distance = 0
+        count = 0
 
-#         # Assurez-vous que les DataLoader retournent des lots de la même taille
-#         # ou gérez les cas où les derniers lots pourraient être de tailles différentes.
-#         for mnist_images, usps_images in zip(mnist_dataloader, usps_dataloader):
-#             # Aplatir les images
-#             mnist_flat = mnist_images.view(mnist_images.shape[0], -1)
-#             usps_flat = usps_images.view(usps_images.shape[0], -1)
+        # Assurez-vous que les DataLoader retournent des lots de la même taille
+        # ou gérez les cas où les derniers lots pourraient être de tailles différentes.
+        for mnist_images, usps_images in zip(mnist_dataloader, usps_dataloader):
+            # Aplatir les images
+            mnist_flat = mnist_images.view(mnist_images.shape[0], -1)
+            usps_flat = usps_images.view(usps_images.shape[0], -1)
 
-#             # Calculer les distances euclidiennes
-#             distances = torch.cdist(mnist_flat, usps_flat, p=2)
+            # Calculer les distances euclidiennes
+            distances = torch.cdist(mnist_flat, usps_flat, p=2)
 
-#             # Ajouter la distance moyenne de ce lot
-#             total_distance += distances.mean()
-#             count += 1
-#             # Calculer la distance moyenne globale
-#             mean_distance = total_distance / count
-#             return mean_distance.item()
+            # Ajouter la distance moyenne de ce lot
+            total_distance += distances.mean()
+            count += 1
+            # Calculer la distance moyenne globale
+            mean_distance = total_distance / count
+            return mean_distance.item()
 
-#     def gram_RBF(self, x, y, sigma):
-#         x_size = x.shape[0]
-#         y_size = y.shape[0]
-#         dim = x.shape[1]
-#         x = x.unsqueeze(1)  # Shape: [x_size, 1, dim]
-#         y = y.unsqueeze(0)  # Shape: [1, y_size, dim]
-#         tiled_x = x.expand(x_size, y_size, dim)
-#         tiled_y = y.expand(x_size, y_size, dim)
-#         squared_diff = (tiled_x - tiled_y) ** 2
-#         squared_dist = torch.sum(squared_diff, -1)  # Sum over the feature dimension
-#         return torch.exp(-squared_dist / sigma)
+    def gram_RBF(self, x, y, sigma):
+        x_size = x.shape[0]
+        y_size = y.shape[0]
+        dim = x.shape[1]
+        x = x.unsqueeze(1)  # Shape: [x_size, 1, dim]
+        y = y.unsqueeze(0)  # Shape: [1, y_size, dim]
+        tiled_x = x.expand(x_size, y_size, dim)
+        tiled_y = y.expand(x_size, y_size, dim)
+        squared_diff = (tiled_x - tiled_y) ** 2
+        squared_dist = torch.sum(squared_diff, -1)  # Sum over the feature dimension
+        return torch.exp(-squared_dist / 2*sigma**2)
 
-#     def forward(self, input, target, sigma=32, **kwargs):
-#         if input.grad_fn is not None:
-#             self.sigma = self.calculate_mean_distance(input, target)
-#         XX = self.gram_RBF(input, input, sigma)
-#         YY = self.gram_RBF(target, target, sigma)
-#         XY = self.gram_RBF(input, target, sigma)
-#         loss = torch.mean(XX) + torch.mean(YY) - 2 * torch.mean(XY)
-#         if input.grad_fn is not None:
-#             self.counter += 1
-#         return loss
+    def forward(self, input, target, sigma=32, **kwargs):
+        if input.grad_fn is not None:
+            self.sigma = self.calculate_mean_distance(input, target)
+        XX = self.gram_RBF(input, input, sigma)
+        YY = self.gram_RBF(target, target, sigma)
+        XY = self.gram_RBF(input, target, sigma)
+        loss = torch.mean(XX) + torch.mean(YY) - 2 * torch.mean(XY)
+        if input.grad_fn is not None:
+            self.counter += 1
+        return loss
     
 class WassersteinLoss(nn.Module):
     def __init__(self, reg=1, unbiased=False):

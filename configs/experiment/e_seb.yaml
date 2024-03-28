@@ -4,7 +4,7 @@
 # python train.py experiment=example
 
 defaults:
-  - override /data: d_mnist_usps
+  - override /data: d_domain_adaptation
   - override /model: m_invariant_da
   - override /callbacks: default
   - override /trainer: default
@@ -13,13 +13,13 @@ defaults:
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
 
-tags: ["variation en fonction du nombre de kernels"]
+tags: ["variation en fonction de alpha"]
 
 seed: 12345
 
 trainer:
   min_epochs: 50
-  max_epochs: 110
+  max_epochs: 100
 #  gradient_clip_val: 0.5
 
 model:
@@ -27,26 +27,23 @@ model:
     lr: 0.002
   compile: false
   loss:
-    _target_: src.losses.MMDLossBandwith
-    kernel : 
-      _target_: src.losses.RBF
-      n_kernels : 6
-      #alpha : 1
+    _target_: src.losses.CoralLoss
+
   
 
 data:
-  batch_size: 512
+  batch_size: 1024
 
 logger:
   wandb:
     tags: ${tags}
-    group: "MMD usps to mnist"
+    group: "MMD mnist to mnistm"
   aim:
     experiment: "mnist"
 
 callbacks:
-  plot_embeddings:
-    _target_: src.custom_callbacks.PlotEmbedding
+  # plot_embeddings:
+  #   _target_: src.custom_callbacks.PlotEmbedding
     
   early_stopping: 
     monitor: "val/loss"

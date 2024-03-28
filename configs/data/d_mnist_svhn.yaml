@@ -1,7 +1,0 @@
-_target_: src.data.d_mnist_svhn_datamodule.DataModule
-data_dir: None
-batch_size: 16
-train_val_split: [0.8, 0.2]
-flip_domain: False # False : src:mnist trg:svhn, True : src:svhn trg:mnist
-num_workers: 4
-pin_memory: False
