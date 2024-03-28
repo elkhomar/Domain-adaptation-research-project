@@ -9,7 +9,7 @@ class MnistDataset(Dataset):
     def __init__(self):
         self.all_outputs, self.train_outputs, self.val_outputs = self.load_mnist()
 
-    def load_mnist(self, path='data'):
+    def load_mnist(self, path="data"):
         """
         Loads the MNIST dataset and returns the images and labels
         """

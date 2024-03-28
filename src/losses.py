@@ -2,30 +2,42 @@ import torch
 import torch.functional as F
 import torch.nn as nn
 import ot
-
+import skada
 
 class RBF(nn.Module):
 
-    def __init__(self, n_kernels=6, mul_factor=2.0, bandwidth=None):
+    def __init__(self, n_kernels=1, mul_factor=2.0, bandwidth=None):
         super().__init__()
-        self.bandwidth_multipliers = mul_factor ** (torch.arange(n_kernels) - n_kernels // 2)
+        self.bandwidth_multipliers = mul_factor ** (
+            torch.arange(n_kernels) - n_kernels // 2
+        )
         self.bandwidth = bandwidth
         self.n_kernels = n_kernels
+
     def get_bandwidth(self, L2_distances):
         if self.bandwidth is None:
             n_samples = L2_distances.shape[0]
-            return L2_distances.data.sum() / (n_samples ** 2 - n_samples)
+            return L2_distances.data.sum() / (n_samples**2 - n_samples)
 
         return self.bandwidth
 
     def forward(self, X):
         L2_distances = torch.cdist(X, X) ** 2
-        return torch.exp(-L2_distances[None, ...] / (self.get_bandwidth(L2_distances) * self.bandwidth_multipliers.to(X.device))[:, None, None]).sum(dim=0)
+        return torch.exp(
+            -L2_distances[None, ...]
+            / (
+                self.get_bandwidth(L2_distances)
+                * self.bandwidth_multipliers.to(X.device)
+            )[:, None, None]
+        ).sum(dim=0)
+
 
 class RQ(nn.Module):
     def __init__(self, n_kernels=6, mul_factor=2.0, alpha=1.0, bandwidth=None):
         super().__init__()
-        self.bandwidth_multipliers = mul_factor ** (torch.arange(n_kernels) - n_kernels // 2)
+        self.bandwidth_multipliers = mul_factor ** (
+            torch.arange(n_kernels) - n_kernels // 2
+        )
         self.bandwidth = bandwidth
         self.n_kernels = n_kernels
         self.alpha = alpha
@@ -33,16 +45,21 @@ class RQ(nn.Module):
     def get_bandwidth(self, L2_distances):
         if self.bandwidth is None:
             n_samples = L2_distances.shape[0]
-            return L2_distances.data.sum() / (n_samples ** 2 - n_samples)
+            return L2_distances.data.sum() / (n_samples**2 - n_samples)
         return self.bandwidth
+
     def forward(self, X):
         L2_distances = torch.cdist(X, X) ** 2
-        bandwidth = self.get_bandwidth(L2_distances) * self.bandwidth_multipliers.to(X.device)
-        K = (1 + L2_distances[None, ...] / (2 * self.alpha * bandwidth[:, None, None])) ** (-self.alpha)
+        bandwidth = self.get_bandwidth(L2_distances) * self.bandwidth_multipliers.to(
+            X.device
+        )
+        K = (
+            1 + L2_distances[None, ...] / (2 * self.alpha * bandwidth[:, None, None])
+        ) ** (-self.alpha)
         return K.sum(dim=0)
 
 
-class MMDLossBandwith(nn.Module):
+class MMDLossBandwidth(nn.Module):
 
     def __init__(self, kernel=RQ()):
         super().__init__()
@@ -56,59 +73,10 @@ class MMDLossBandwith(nn.Module):
         XY = K[:X_size, X_size:].mean()
         YY = K[X_size:, X_size:].mean()
         return XX - 2 * XY + YY
-    
 
-# class MMDLoss(nn.Module):
-#     def __init__(self, sigma=32):
-#         super(MMDLoss, self).__init__()
-#         self.sigma = sigma
-#         self.counter = 0
-#     def calculate_mean_distance(self, mnist_dataloader, usps_dataloader):
-#         total_distance = 0
-#         count = 0
 
-#         # Assurez-vous que les DataLoader retournent des lots de la même taille
-#         # ou gérez les cas où les derniers lots pourraient être de tailles différentes.
-#         for mnist_images, usps_images in zip(mnist_dataloader, usps_dataloader):
-#             # Aplatir les images
-#             mnist_flat = mnist_images.view(mnist_images.shape[0], -1)
-#             usps_flat = usps_images.view(usps_images.shape[0], -1)
-
-#             # Calculer les distances euclidiennes
-#             distances = torch.cdist(mnist_flat, usps_flat, p=2)
-
-#             # Ajouter la distance moyenne de ce lot
-#             total_distance += distances.mean()
-#             count += 1
-#             # Calculer la distance moyenne globale
-#             mean_distance = total_distance / count
-#             return mean_distance.item()
-
-#     def gram_RBF(self, x, y, sigma):
-#         x_size = x.shape[0]
-#         y_size = y.shape[0]
-#         dim = x.shape[1]
-#         x = x.unsqueeze(1)  # Shape: [x_size, 1, dim]
-#         y = y.unsqueeze(0)  # Shape: [1, y_size, dim]
-#         tiled_x = x.expand(x_size, y_size, dim)
-#         tiled_y = y.expand(x_size, y_size, dim)
-#         squared_diff = (tiled_x - tiled_y) ** 2
-#         squared_dist = torch.sum(squared_diff, -1)  # Sum over the feature dimension
-#         return torch.exp(-squared_dist / sigma)
-
-#     def forward(self, input, target, sigma=32, **kwargs):
-#         if input.grad_fn is not None:
-#             self.sigma = self.calculate_mean_distance(input, target)
-#         XX = self.gram_RBF(input, input, sigma)
-#         YY = self.gram_RBF(target, target, sigma)
-#         XY = self.gram_RBF(input, target, sigma)
-#         loss = torch.mean(XX) + torch.mean(YY) - 2 * torch.mean(XY)
-#         if input.grad_fn is not None:
-#             self.counter += 1
-#         return loss
-    
 class WassersteinLoss(nn.Module):
-    def __init__(self, reg=1, unbiased=False):
+    def __init__(self, reg=0, unbiased=False):
         super(WassersteinLoss, self).__init__()
         self.reg = reg
         self.unbiased = unbiased
@@ -215,8 +183,8 @@ class DeepJDOT_Loss(nn.Module):
         """
         We pass the labels through the kwargs argument so the other losses don't have to explicitly use y and y_target
         """
-        y_source = kwargs["y_source"]
-        y_target = kwargs["preds_target"]
+        y_source = kwargs["y_source"] if kwargs["y_source"] else torch.zeros(0)
+        y_target = kwargs["preds_target"] if kwargs["preds_target"] else torch.zeros(0)
         return self.deepjdot_loss(source, target, y_source, y_target)
 
     def deepjdot_loss(
@@ -316,8 +284,8 @@ class UnbiasedDeepJDOT_Loss(nn.Module):
         """
         We pass the labels through the kwargs argument so the other losses don't have to explicitly use y and y_target
         """
-        y_source = kwargs["y_source"]
-        y_target = kwargs["preds_target"]
+        y_source = kwargs["y_source"] if kwargs["y_source"] else torch.zeros(0)
+        y_target = kwargs["preds_target"] if kwargs["preds_target"] else torch.zeros(0)
         return self.unbiased_deepjdot_loss(source, target, y_source, y_target)
 
     def unbiased_deepjdot_loss(
@@ -414,9 +382,65 @@ class UnbiasedDeepJDOT_Loss(nn.Module):
 
 
 if __name__ == "__main__":
-    X = torch.randn(64, 9000).to("cuda")
-    print(X)
-    Y = torch.randn(64,9000).to("cuda")
-    loss=MMDLossBandwith(kernel=RQ())
-    val=loss(X,Y)
-    print(val)
+    import inspect
+    import sys
+
+    instances = {}
+    not_losses = ["RBF", "RQ", "DeepJDOT_Loss", "UnbiasedDeepJDOT_Loss", "CoralLoss"]
+    # Iterate through all attributes in the current module
+    for name, obj in inspect.getmembers(sys.modules[__name__]):
+        # Check if the attribute is a class and defined in the current module
+        if inspect.isclass(obj) and obj.__module__ == __name__ and not (name in not_losses) :
+            instances[name] = obj()
+    n = 30
+    instances["Sinkhorn"] = WassersteinLoss(reg=0.1*10)
+    instances["unbiased_Wasserstein"] = WassersteinLoss(unbiased=True)
+
+    import matplotlib.pyplot as plt
+
+    # n_samples_sweep = {}
+    # # checking the scaling against
+    # fig, ax = plt.subplots()
+    # for name, instance in instances.items():
+    #     n_samples_sweep[name] = [instance(2*torch.ones(i, 10), torch.zeros(i, 10)) for i in range(1, n)]
+    #     ax.plot(n_samples_sweep[name], label=name)
+    # ax.legend()
+    # plt.show()
+
+    # n_dim_sweep = {}
+    # # checking the scaling against
+    # fig, ax = plt.subplots()
+    # for name, instance in instances.items():
+    #     n_dim_sweep[name] = [instance(2*torch.ones(10, n), torch.zeros(10, n)) for i in range(1, n)]
+    #     ax.plot(n_dim_sweep[name], label=name)
+    # ax.legend() 
+    # plt.show()
+
+    # Plot the evolution of the loss with translation/ scaling on gaussian samples
+    fig, ax = plt.subplots()
+    translation_scaling_sweep = {}
+    from torch.distributions.multivariate_normal import MultivariateNormal
+    batch_size = 64
+    m = MultivariateNormal(torch.zeros(2), torch.eye(2))
+    x = m.rsample((batch_size*100,))
+    y = x.clone()
+    y_target = (y * 10) + torch.ones_like(y)* 10
+    # Initialize an array to store interpolated points
+    interpolated_points = []
+    for t in torch.linspace(0, 1, steps=n):
+        interpolated_point = y + (y_target - y) * t
+        interpolated_points.append(interpolated_point)
+
+    def get_minibatch_estimates(x, y, distance, batch_size):
+        distance_batch = [distance(x[(i-1)*(batch_size):i*batch_size], y[(i-1)*(batch_size):i*batch_size]) for i in range(1, x.shape[0]//batch_size)]
+        return sum(distance_batch) / len(distance_batch)
+
+    for name, instance in instances.items():
+        # instantiate multivariate gaussian
+        # translation_scaling_sweep[name] = [instance(x, interpolated_points[i]) for i in range(1, n)]
+        translation_scaling_sweep[name] = [get_minibatch_estimates(x, interpolated_points[i], instance, batch_size) for i in range(0, n)]
+        ax.plot(translation_scaling_sweep[name], label=name)
+
+    ax.legend()
+    plt.show()
+a = 0
